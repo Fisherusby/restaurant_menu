@@ -1,0 +1,38 @@
+version: '3'
+
+volumes:
+  postgres_data: { }
+  redis_data: { }
+
+services:
+#  fastapi:
+#    container_name: fastapi_backend
+#    restart: always
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    volumes:
+#      - .:/app
+#    environment:
+#      - MODULE_NAME=core.main
+#    depends_on:
+#      - postgres
+#      - redis
+#    ports:
+#      - "8080:80"
+#    command: /start-reload.sh
+#    env_file:
+#      - .env
+
+  postgres:
+    container_name: main_db
+    restart: always
+    image: postgres:12
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    env_file:
+      - .env
