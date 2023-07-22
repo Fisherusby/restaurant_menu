@@ -35,8 +35,8 @@ class DishDBModel(BaseDBModel):
     submenu = relationship("SubmenuDBModel", foreign_keys=[submenu_id], back_populates='dishes')
 
     # flake8: noqa: A003
-    def dict(self):
-        result = super().dict()
+    def to_dict(self):
+        result = super().to_dict()
         if result.get('price'):
             result['price'] = str(result['price'])
         return result

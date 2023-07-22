@@ -9,7 +9,7 @@ class BaseDBModel:
     __name__: str
 
     # flake8: noqa: A003
-    def dict(self):
+    def to_dict(self):
         result = self.__dict__
         result['id'] = str(result['id'])
         return result

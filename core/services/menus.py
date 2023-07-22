@@ -10,18 +10,18 @@ from core.services.base import BaseObjectService
 class MenusService(BaseObjectService):
     async def get_menu_list(self, db: AsyncSession) -> List[schemas.ResponseMenuSchema]:
         menu_list: List[models.MenuDBModel] = await self.repository.get_all(db=db)
-        return [schemas.ResponseMenuSchema(**obj.dict()) for obj in menu_list]
+        return [schemas.ResponseMenuSchema(**obj.to_dict()) for obj in menu_list]
 
     async def get_menu(self, db: AsyncSession, menu_id: int) -> schemas.ResponseMenuWithCountSchema:
         menu: models.MenuDBModel = await self.get_menu_by_id_or_404(db=db, menu_id=menu_id)
         submenus_count, dishes_count = await self.repository.get_counts(db=db, menu_id=menu_id)
         return schemas.ResponseMenuWithCountSchema(
-            **menu.dict(), submenus_count=submenus_count, dishes_count=dishes_count
+            **menu.to_dict(), submenus_count=submenus_count, dishes_count=dishes_count
         )
 
     async def create_menu(self, db: AsyncSession, data: schemas.MenuSchema) -> schemas.ResponseMenuSchema:
         menu: models.MenuDBModel = await self.repository.create(db=db, obj_in=data)
-        return schemas.ResponseMenuSchema(**menu.dict())
+        return schemas.ResponseMenuSchema(**menu.to_dict())
 
     async def update_menu(
         self, db: AsyncSession, menu_id: int, data: schemas.UpdateMenuSchema
@@ -29,7 +29,7 @@ class MenusService(BaseObjectService):
         menu: models.MenuDBModel = await self.get_menu_by_id_or_404(db=db, menu_id=menu_id)
 
         updated_menu = await self.repository.update(db=db, obj_in=data, db_obj=menu)
-        return schemas.ResponseMenuSchema(**updated_menu.dict())
+        return schemas.ResponseMenuSchema(**updated_menu.to_dict())
 
     async def delete_menu(self, db: AsyncSession, menu_id: int) -> None:
         await self.get_menu_by_id_or_404(db=db, menu_id=menu_id)
