@@ -1,6 +1,7 @@
-from sqlalchemy import Integer, ForeignKey, String, Column, DECIMAL
-from core.models.base import BaseDBModel
+from sqlalchemy import DECIMAL, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
+
+from core.models.base import BaseDBModel
 
 
 class MenuDBModel(BaseDBModel):
@@ -33,6 +34,7 @@ class DishDBModel(BaseDBModel):
 
     submenu = relationship("SubmenuDBModel", foreign_keys=[submenu_id], back_populates='dishes')
 
+    # flake8: noqa: A003
     def dict(self):
         result = super().dict()
         if result.get('price'):

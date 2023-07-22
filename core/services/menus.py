@@ -1,9 +1,10 @@
-from core.services.base import BaseObjectService
-from core import repositories, schemas, models
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional, Tuple
+from typing import List
 
 from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core import models, repositories, schemas
+from core.services.base import BaseObjectService
 
 
 class MenusService(BaseObjectService):
@@ -22,7 +23,9 @@ class MenusService(BaseObjectService):
         menu: models.MenuDBModel = await self.repository.create(db=db, obj_in=data)
         return schemas.ResponseMenuSchema(**menu.dict())
 
-    async def update_menu(self, db: AsyncSession, menu_id: int, data: schemas.UpdateMenuSchema) -> schemas.ResponseMenuSchema:
+    async def update_menu(
+        self, db: AsyncSession, menu_id: int, data: schemas.UpdateMenuSchema
+    ) -> schemas.ResponseMenuSchema:
         menu: models.MenuDBModel = await self.get_menu_by_id_or_404(db=db, menu_id=menu_id)
 
         updated_menu = await self.repository.update(db=db, obj_in=data, db_obj=menu)
@@ -30,13 +33,13 @@ class MenusService(BaseObjectService):
 
     async def delete_menu(self, db: AsyncSession, menu_id: int) -> None:
         await self.get_menu_by_id_or_404(db=db, menu_id=menu_id)
-        await self.repository.delete_by_id(db=db, id=menu_id)
+        await self.repository.delete_by_id(db=db, obj_id=menu_id)
 
     async def get_menu_by_id_or_404(self, db: AsyncSession, menu_id: int) -> models.MenuDBModel:
-        menu: models.MenuDBModel = await self.repository.get_by_id(db=db, id=menu_id)
+        menu: models.MenuDBModel = await self.repository.get_by_id(db=db, obj_id=menu_id)
 
         if menu is None:
-            raise HTTPException(status_code=404, detail=f"menu not found")
+            raise HTTPException(status_code=404, detail="menu not found")
 
         return menu
 

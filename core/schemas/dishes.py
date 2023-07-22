@@ -1,5 +1,6 @@
-from core.schemas.base import BaseIdSchema, APISchema
 from typing import Optional, Union
+
+from core.schemas.base import APISchema, BaseIdSchema
 
 
 class DishSchema(APISchema):
@@ -20,5 +21,3 @@ class DishWithSubmenuIdSchema(DishSchema):
 
 class ResponseDishSchema(DishWithSubmenuIdSchema, BaseIdSchema):
     price: Union[str, float]
-
-

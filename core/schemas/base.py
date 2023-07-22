@@ -1,4 +1,4 @@
-from pydantic import BaseModel, BaseConfig
+from pydantic import BaseConfig, BaseModel
 
 
 class APISchema(BaseModel):
@@ -8,4 +8,5 @@ class APISchema(BaseModel):
 
 
 class BaseIdSchema(APISchema):
+   # flake8: noqa: A003
     id: str

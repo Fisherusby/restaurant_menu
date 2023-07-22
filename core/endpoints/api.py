@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from core.endpoints.dishes import router as dishes_router
 from core.endpoints.menus import router as menus_router
 from core.endpoints.submenus import router as submenus_router

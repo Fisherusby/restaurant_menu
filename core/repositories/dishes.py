@@ -1,5 +1,6 @@
-from core.repositories.base import BaseRepository
 from core import models
+from core.repositories.base import BaseRepository
+
 
 class DishesRepository(BaseRepository):
     pass

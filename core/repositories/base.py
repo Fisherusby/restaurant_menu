@@ -16,7 +16,7 @@ class BaseRepository:
     """CRUD object with default methods to Create, Read, Update, Delete (CRUD)."""
 
     def __init__(self, model: Type[ModelType]):
-        self.model = model
+        self.model: Type[ModelType] = model
 
     async def get_all(
         self,
@@ -28,9 +28,9 @@ class BaseRepository:
         """Select all objects in database."""
         return (await db.execute(select(self.model).offset(skip).limit(limit))).scalars().all()
 
-    async def get_by_id(self, db: AsyncSession, *, id: int) -> Optional[ModelType]:
+    async def get_by_id(self, db: AsyncSession, *, obj_id: int) -> Optional[ModelType]:
         """Select an object in database by ID."""
-        query = select(self.model).filter(self.model.id == id)
+        query = select(self.model).filter(self.model.id == obj_id)
         res = (await db.execute(query)).scalar_one_or_none()
         return res
 
@@ -63,11 +63,11 @@ class BaseRepository:
 
         return db_obj
 
-    async def delete_by_id(self, db: AsyncSession, *, id: int):
+    async def delete_by_id(self, db: AsyncSession, *, obj_id: int):
         """Delete an object in database by ID."""
-        obj = await self.get_by_id(db=db, id=id)
+        obj = await self.get_by_id(db=db, obj_id=obj_id)
 
-        query = delete(self.model).where(self.model.id == id)
+        query = delete(self.model).where(self.model.id == obj_id)
 
         await db.execute(query)
         await db.commit()

@@ -1,11 +1,10 @@
+from typing import List
 
 from fastapi import APIRouter, Depends
-
-from core.db import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import schemas, services
-from typing import List
+from core.db import get_session
 
 router = APIRouter()
 
@@ -30,7 +29,7 @@ async def detail_menu(menu_id: int, db: AsyncSession = Depends(get_session)) -> 
 
 @router.patch('/{menu_id}', status_code=200, response_model=schemas.ResponseMenuSchema)
 async def update_menu(
-        menu_id: int, data: schemas.UpdateMenuSchema, db: AsyncSession = Depends(get_session)
+    menu_id: int, data: schemas.UpdateMenuSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseMenuSchema:
     menu: schemas.ResponseMenuSchema = await services.menus_service.update_menu(db=db, menu_id=menu_id, data=data)
     return menu

@@ -1,1 +1,1 @@
-from core.models.models import SubmenuDBModel, MenuDBModel, DishDBModel
+from core.models.models import DishDBModel, MenuDBModel, SubmenuDBModel

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from core.schemas.base import BaseIdSchema, APISchema
+from core.schemas.base import APISchema, BaseIdSchema
 
 
 class MenuSchema(APISchema):

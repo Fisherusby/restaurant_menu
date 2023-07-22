@@ -1,5 +1,6 @@
-from core.schemas.base import BaseIdSchema, APISchema
-from typing import Optional, List
+from typing import Optional
+
+from core.schemas.base import APISchema, BaseIdSchema
 
 
 class SubmenuSchema(APISchema):

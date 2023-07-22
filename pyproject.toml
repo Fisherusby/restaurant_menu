@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "ylab dish menu"
+version = "0.0.1"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.10.6"
+
+[tool.black]
+line-length = 120
+skip-string-normalization = true
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 88
+
+# doesn't work with pre-commit
+[tool.docformatter]
+wrap-summaries = 120
+wrap-descriptions = 120
+
+[pycodestyle]
+max-line-length = 120
+exclude = ".tox,.git,*/migrations/*,*/static/CACHE/*,docs,node_modules"
+
