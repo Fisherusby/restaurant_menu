@@ -54,6 +54,7 @@ class BaseRepository:
     async def create(self, db: AsyncSession, *, obj_in: Union[CreateSchemaType, dict]):
         """Create an object in database."""
         obj_in: dict = dict(obj_in)
+
         db_obj = self.model(**obj_in)
         db.add(db_obj)
         await db.flush()

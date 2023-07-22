@@ -22,9 +22,9 @@ async def create_menu(data: schemas.MenuSchema, db: AsyncSession = Depends(get_s
     return menu
 
 
-@router.get('/{menu_id}', status_code=200, response_model=schemas.ResponseMenuSchema)
-async def get_menu(menu_id: int, db: AsyncSession = Depends(get_session)) -> schemas.ResponseMenuSchema:
-    menu: schemas.ResponseMenuSchema = await services.menus_service.get_menu(db=db, menu_id=menu_id)
+@router.get('/{menu_id}', status_code=200, response_model=schemas.ResponseMenuWithCountSchema)
+async def detail_menu(menu_id: int, db: AsyncSession = Depends(get_session)) -> schemas.ResponseMenuWithCountSchema:
+    menu: schemas.ResponseMenuWithCountSchema = await services.menus_service.get_menu(db=db, menu_id=menu_id)
     return menu
 
 

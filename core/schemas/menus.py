@@ -19,3 +19,4 @@ class ResponseMenuSchema(MenuSchema, BaseIdSchema):
 
 class ResponseMenuWithCountSchema(ResponseMenuSchema):
     submenus_count: int
+    dishes_count: int

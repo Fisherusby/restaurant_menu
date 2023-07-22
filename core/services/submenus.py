@@ -7,20 +7,21 @@ from fastapi import HTTPException
 
 class SubmenusService(BaseObjectService):
 
-    async def get_submenu(self, db: AsyncSession, menu_id: int, submenu_id: int) -> schemas.ResponseSubmenuSchema:
+    async def get_submenu(
+        self, db: AsyncSession, menu_id: int, submenu_id: int
+    ) -> schemas.ResponseSubmenuWithCountSchema:
         submenu: models.SubmenuDBModel = await self.get_submenu_by_id_or_404(
             db=db, submenu_id=submenu_id, menu_id=menu_id
         )
-
-        return schemas.ResponseSubmenuSchema(**submenu.dict())
+        dishes_count = await self.repository.get_counts(db=db, submenu_id=submenu_id)
+        return schemas.ResponseSubmenuWithCountSchema(**submenu.dict(), dishes_count=dishes_count)
 
     async def get_submenu_list(self, db: AsyncSession, menu_id: int) -> List[schemas.ResponseSubmenuSchema]:
         await services.menus_service.get_menu_by_id_or_404(db=db, menu_id=menu_id)
 
         submenu_list: List[models.SubmenuDBModel] = await self.repository.get_by_fields(
-            db=db, fields={'menu_id': menu_id}, only_one=False
+            db=db, fields={'menu_id': menu_id}
         )
-
         return [
             schemas.ResponseSubmenuSchema(**obj.dict()) for obj in submenu_list
         ]

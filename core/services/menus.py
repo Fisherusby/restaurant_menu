@@ -1,7 +1,7 @@
 from core.services.base import BaseObjectService
 from core import repositories, schemas, models
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Optional, Tuple
 
 from fastapi import HTTPException
 
@@ -11,10 +11,12 @@ class MenusService(BaseObjectService):
         menu_list: List[models.MenuDBModel] = await self.repository.get_all(db=db)
         return [schemas.ResponseMenuSchema(**obj.dict()) for obj in menu_list]
 
-    async def get_menu(self, db: AsyncSession, menu_id: int) -> schemas.ResponseMenuSchema:
+    async def get_menu(self, db: AsyncSession, menu_id: int) -> schemas.ResponseMenuWithCountSchema:
         menu: models.MenuDBModel = await self.get_menu_by_id_or_404(db=db, menu_id=menu_id)
-
-        return schemas.ResponseMenuSchema(**menu.dict())
+        submenus_count, dishes_count = await self.repository.get_counts(db=db, menu_id=menu_id)
+        return schemas.ResponseMenuWithCountSchema(
+            **menu.dict(), submenus_count=submenus_count, dishes_count=dishes_count
+        )
 
     async def create_menu(self, db: AsyncSession, data: schemas.MenuSchema) -> schemas.ResponseMenuSchema:
         menu: models.MenuDBModel = await self.repository.create(db=db, obj_in=data)

@@ -30,11 +30,11 @@ async def create_submenus(
     return submenu
 
 
-@router.get('/{menu_id}/submenus/{submenu_id}', status_code=200, response_model=schemas.ResponseSubmenuSchema)
-async def get_submenu(
+@router.get('/{menu_id}/submenus/{submenu_id}', status_code=200, response_model=schemas.ResponseSubmenuWithCountSchema)
+async def detail_submenu(
         menu_id: int, submenu_id: int, db: AsyncSession = Depends(get_session)
-) -> schemas.ResponseSubmenuSchema:
-    submenu: schemas.ResponseSubmenuSchema = await services.submenus_service.get_submenu(
+) -> schemas.ResponseSubmenuWithCountSchema:
+    submenu: schemas.ResponseSubmenuWithCountSchema = await services.submenus_service.get_submenu(
         db=db, menu_id=menu_id, submenu_id=submenu_id
     )
     return submenu
