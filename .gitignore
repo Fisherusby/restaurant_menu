@@ -1,6 +1,5 @@
 /.idea/
 /selesta_venv/
-alembic/versions
 /venv
 /.venv
 /vscode
