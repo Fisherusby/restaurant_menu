@@ -16,8 +16,7 @@ extend-ignore =
     B008
 
 per-file-ignores =
-  apps/info/services/covid,py: I100
-  apps/store/permissions.py: I100
+  */__init__.py: F401
 
 # List of error codes
 # https://wemake-python-styleguide.readthedocs.io/en/latest/pages/usage/violations/index.html
