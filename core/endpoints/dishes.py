@@ -13,6 +13,8 @@ router = APIRouter()
 async def get_dish_list(
     menu_id: int, submenu_id: int, db: AsyncSession = Depends(get_session)
 ) -> List[schemas.ResponseDishSchema]:
+    """Get submenu's dishes."""
+
     dish_list: List[schemas.ResponseDishSchema] = await services.dishes_service.get_dish_list(
         db=db, menu_id=menu_id, submenu_id=submenu_id
     )
@@ -23,6 +25,8 @@ async def get_dish_list(
 async def create_dish(
     menu_id: int, submenu_id: int, data: schemas.DishSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseDishSchema:
+    """Add dish for submenu."""
+
     dish: schemas.ResponseDishSchema = await services.dishes_service.create_dish(
         db=db, menu_id=menu_id, submenu_id=submenu_id, data=data
     )
@@ -35,6 +39,8 @@ async def create_dish(
 async def detail_dish(
     menu_id: int, submenu_id: int, dish_id: int, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseDishSchema:
+    """Get dish's detail."""
+
     dish: schemas.ResponseDishSchema = await services.dishes_service.get_dish(
         db=db, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id
     )
@@ -47,6 +53,11 @@ async def detail_dish(
 async def update_dish(
     menu_id: int, submenu_id: int, dish_id: int, data: schemas.UpdateDishSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseDishSchema:
+    """Update dish's properties:
+
+    title, description and price.
+    """
+
     dish: schemas.ResponseDishSchema = await services.dishes_service.update_dish(
         db=db, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id, data=data
     )
@@ -55,4 +66,6 @@ async def update_dish(
 
 @router.delete('/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', status_code=200)
 async def delete_dish(menu_id: int, submenu_id: int, dish_id: int, db: AsyncSession = Depends(get_session)) -> None:
+    """Delete dish."""
+
     await services.dishes_service.delete_dish(db=db, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)

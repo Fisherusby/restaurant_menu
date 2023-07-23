@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
     VERSION: str = '0.0.1'
 
-    SQLALCHEMY_DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/db"
+    SQLALCHEMY_DATABASE_URL: str
 
     SQLALCHEMY_SYNC_DATABASE_URL: str
 

@@ -37,7 +37,7 @@ class BaseRepository:
     async def get_by_fields(
         self, db: AsyncSession, *, fields: dict, only_one: bool = False, skip: int = 0, limit: int = 100
     ) -> Union[Optional[ModelType], List[ModelType]]:
-        """Select objects in database by field value.
+        """Select objects in database by fields value.
 
         only_one set True if you want an objects or None as result.
         """

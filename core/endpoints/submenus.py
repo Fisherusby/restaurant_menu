@@ -13,6 +13,8 @@ router = APIRouter()
 async def get_submenu_list(
     menu_id: int, db: AsyncSession = Depends(get_session)
 ) -> List[schemas.ResponseSubmenuSchema]:
+    """Get menu's submenu."""
+
     submenu_list: List[schemas.ResponseSubmenuSchema] = await services.submenus_service.get_submenu_list(
         db=db, menu_id=menu_id
     )
@@ -23,6 +25,8 @@ async def get_submenu_list(
 async def create_submenus(
     menu_id: int, data: schemas.SubmenuSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseSubmenuSchema:
+    """Create submenu for menu."""
+
     submenu: schemas.ResponseSubmenuSchema = await services.submenus_service.create_submenu(
         db=db, menu_id=menu_id, data=data
     )
@@ -33,6 +37,8 @@ async def create_submenus(
 async def detail_submenu(
     menu_id: int, submenu_id: int, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseSubmenuWithCountSchema:
+    """Get submenu's detail."""
+
     submenu: schemas.ResponseSubmenuWithCountSchema = await services.submenus_service.get_submenu(
         db=db, menu_id=menu_id, submenu_id=submenu_id
     )
@@ -43,6 +49,11 @@ async def detail_submenu(
 async def update_submenu(
     menu_id: int, submenu_id: int, data: schemas.UpdateSubmenuSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseSubmenuSchema:
+    """Update submenu's properties:
+
+    title and description.
+    """
+
     submenu: schemas.ResponseSubmenuSchema = await services.submenus_service.update_submenu(
         db=db, menu_id=menu_id, submenu_id=submenu_id, data=data
     )
@@ -51,4 +62,6 @@ async def update_submenu(
 
 @router.delete('/{menu_id}/submenus/{submenu_id}', status_code=200)
 async def delete_submenu(menu_id: int, submenu_id: int, db: AsyncSession = Depends(get_session)) -> None:
+    """Delete submenu."""
+
     await services.submenus_service.delete_submenu(db=db, menu_id=menu_id, submenu_id=submenu_id)

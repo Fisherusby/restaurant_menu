@@ -9,6 +9,7 @@ from core.repositories.base import BaseRepository
 
 class SubmenuRepository(BaseRepository):
     async def get_counts(self, db: AsyncSession, submenu_id: int) -> Optional[int]:
+        """Get counts of dishes in submenu from database."""
         query = (
             select(func.count(models.DishDBModel.id))
             .filter(models.DishDBModel.submenu_id == submenu_id)
