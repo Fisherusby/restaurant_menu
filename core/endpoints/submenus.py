@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +12,7 @@ router = APIRouter()
 
 @router.get('/{menu_id}/submenus', status_code=200, response_model=List[schemas.ResponseSubmenuSchema])
 async def get_submenu_list(
-    menu_id: int, db: AsyncSession = Depends(get_session)
+    menu_id: UUID, db: AsyncSession = Depends(get_session)
 ) -> List[schemas.ResponseSubmenuSchema]:
     """Get menu's submenu."""
 
@@ -23,7 +24,7 @@ async def get_submenu_list(
 
 @router.post('/{menu_id}/submenus', status_code=201, response_model=schemas.ResponseSubmenuSchema)
 async def create_submenus(
-    menu_id: int, data: schemas.SubmenuSchema, db: AsyncSession = Depends(get_session)
+    menu_id: UUID, data: schemas.SubmenuSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseSubmenuSchema:
     """Create submenu for menu."""
 
@@ -35,7 +36,7 @@ async def create_submenus(
 
 @router.get('/{menu_id}/submenus/{submenu_id}', status_code=200, response_model=schemas.ResponseSubmenuWithCountSchema)
 async def detail_submenu(
-    menu_id: int, submenu_id: int, db: AsyncSession = Depends(get_session)
+    menu_id: UUID, submenu_id: UUID, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseSubmenuWithCountSchema:
     """Get submenu's detail."""
 
@@ -47,7 +48,7 @@ async def detail_submenu(
 
 @router.patch('/{menu_id}/submenus/{submenu_id}', status_code=200, response_model=schemas.ResponseSubmenuSchema)
 async def update_submenu(
-    menu_id: int, submenu_id: int, data: schemas.UpdateSubmenuSchema, db: AsyncSession = Depends(get_session)
+    menu_id: UUID, submenu_id: UUID, data: schemas.UpdateSubmenuSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseSubmenuSchema:
     """Update submenu's properties:
 
@@ -61,7 +62,7 @@ async def update_submenu(
 
 
 @router.delete('/{menu_id}/submenus/{submenu_id}', status_code=200)
-async def delete_submenu(menu_id: int, submenu_id: int, db: AsyncSession = Depends(get_session)) -> None:
+async def delete_submenu(menu_id: UUID, submenu_id: UUID, db: AsyncSession = Depends(get_session)) -> None:
     """Delete submenu."""
 
     await services.submenus_service.delete_submenu(db=db, menu_id=menu_id, submenu_id=submenu_id)

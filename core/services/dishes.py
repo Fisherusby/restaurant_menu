@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +11,9 @@ from core.services.base import BaseObjectService
 class DishesService(BaseObjectService):
     """Service for dishes data."""
 
-    async def get_dish_list(self, db: AsyncSession, menu_id: int, submenu_id: int) -> List[schemas.ResponseDishSchema]:
+    async def get_dish_list(
+        self, db: AsyncSession, menu_id: UUID, submenu_id: UUID
+    ) -> List[schemas.ResponseDishSchema]:
         """Get a list of dishes in submenu by IDs of menu and submenu."""
         # Postman tests expect empty list in non-existent submenu...
         # await services.submenus_service.get_submenu_by_id_or_404(db=db, menu_id=menu_id, submenu_id=submenu_id)
@@ -20,7 +23,7 @@ class DishesService(BaseObjectService):
         return [schemas.ResponseDishSchema(**obj.to_dict()) for obj in dish_list]
 
     async def get_dish(
-        self, db: AsyncSession, menu_id: int, submenu_id: int, dish_id: int
+        self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, dish_id: UUID
     ) -> schemas.ResponseDishSchema:
         """Get dish data by IDs of dish, menu and submenu."""
         dish: models.DishDBModel = await self.get_dish_by_id_or_404(
@@ -29,7 +32,7 @@ class DishesService(BaseObjectService):
         return schemas.ResponseDishSchema(**dish.to_dict())
 
     async def get_dish_by_id_or_404(
-        self, db: AsyncSession, menu_id: int, submenu_id: int, dish_id: int
+        self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, dish_id: UUID
     ) -> models.DishDBModel:
         """Get dish data or rise http 404 by IDs of dish, menu and submenu."""
         dish: models.DishDBModel = await self.repository.get_by_fields(
@@ -42,7 +45,7 @@ class DishesService(BaseObjectService):
         return dish
 
     async def create_dish(
-        self, db: AsyncSession, menu_id: int, submenu_id: int, data: schemas.DishSchema
+        self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, data: schemas.DishSchema
     ) -> schemas.ResponseDishSchema:
         """Create dish in menu's submenu."""
         await services.submenus_service.get_submenu_by_id_or_404(db=db, menu_id=menu_id, submenu_id=submenu_id)
@@ -51,7 +54,7 @@ class DishesService(BaseObjectService):
         return schemas.ResponseDishSchema(**dish.to_dict())
 
     async def update_dish(
-        self, db: AsyncSession, menu_id: int, submenu_id: int, dish_id: int, data: schemas.UpdateDishSchema
+        self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, dish_id: UUID, data: schemas.UpdateDishSchema
     ) -> schemas.ResponseDishSchema:
         """Update dish data."""
         dish: models.DishDBModel = await self.get_dish_by_id_or_404(
@@ -60,7 +63,7 @@ class DishesService(BaseObjectService):
         updated_dish: models.DishDBModel = await self.repository.update(db=db, db_obj=dish, obj_in=data)
         return schemas.ResponseDishSchema(**updated_dish.to_dict())
 
-    async def delete_dish(self, db: AsyncSession, menu_id: int, submenu_id: int, dish_id: int) -> None:
+    async def delete_dish(self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, dish_id: UUID) -> None:
         """Delete dish."""
         await self.get_dish_by_id_or_404(db=db, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
 

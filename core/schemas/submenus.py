@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import UUID
 
 from core.schemas.base import APISchema, BaseIdSchema
 
@@ -19,7 +20,7 @@ class SubmenuWithMenuIdSchema(SubmenuSchema):
     Used for create submenu.
     """
 
-    menu_id: int
+    menu_id: UUID
 
 
 class UpdateSubmenuSchema(APISchema):

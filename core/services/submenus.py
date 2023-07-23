@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +10,7 @@ from core.services.base import BaseObjectService
 
 class SubmenusService(BaseObjectService):
     async def get_submenu(
-        self, db: AsyncSession, menu_id: int, submenu_id: int
+        self, db: AsyncSession, menu_id: UUID, submenu_id: UUID
     ) -> schemas.ResponseSubmenuWithCountSchema:
         """Get submenu data by IDs of menu and submenu."""
         submenu: models.SubmenuDBModel = await self.get_submenu_by_id_or_404(
@@ -18,7 +19,7 @@ class SubmenusService(BaseObjectService):
         dishes_count = await self.repository.get_counts(db=db, submenu_id=submenu_id)
         return schemas.ResponseSubmenuWithCountSchema(**submenu.to_dict(), dishes_count=dishes_count)
 
-    async def get_submenu_list(self, db: AsyncSession, menu_id: int) -> List[schemas.ResponseSubmenuSchema]:
+    async def get_submenu_list(self, db: AsyncSession, menu_id: UUID) -> List[schemas.ResponseSubmenuSchema]:
         """Get a list of submenus in menu."""
         await services.menus_service.get_menu_by_id_or_404(db=db, menu_id=menu_id)
 
@@ -27,7 +28,9 @@ class SubmenusService(BaseObjectService):
         )
         return [schemas.ResponseSubmenuSchema(**obj.to_dict()) for obj in submenu_list]
 
-    async def get_submenu_by_id_or_404(self, db: AsyncSession, menu_id: int, submenu_id: int) -> models.SubmenuDBModel:
+    async def get_submenu_by_id_or_404(
+        self, db: AsyncSession, menu_id: UUID, submenu_id: UUID
+    ) -> models.SubmenuDBModel:
         """Get submenu data by IDs of menu and submenu or rise http 404 if non-exist."""
         submenu: models.SubmenuDBModel = await self.repository.get_by_fields(
             db=db,
@@ -44,7 +47,7 @@ class SubmenusService(BaseObjectService):
         return submenu
 
     async def create_submenu(
-        self, db: AsyncSession, menu_id: int, data: schemas.SubmenuSchema
+        self, db: AsyncSession, menu_id: UUID, data: schemas.SubmenuSchema
     ) -> schemas.ResponseSubmenuSchema:
         """Create submenu in menu."""
         await services.menus_service.get_menu_by_id_or_404(db=db, menu_id=menu_id)
@@ -53,7 +56,7 @@ class SubmenusService(BaseObjectService):
         return schemas.ResponseSubmenuSchema(**submenu.to_dict())
 
     async def update_submenu(
-        self, db: AsyncSession, menu_id: int, submenu_id: int, data: schemas.UpdateSubmenuSchema
+        self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, data: schemas.UpdateSubmenuSchema
     ) -> schemas.ResponseSubmenuSchema:
         """Update submenu data."""
         sub_menu: models.SubmenuDBModel = await self.get_submenu_by_id_or_404(
@@ -62,7 +65,7 @@ class SubmenusService(BaseObjectService):
         updated_submenu: models.SubmenuDBModel = await self.repository.update(db=db, db_obj=sub_menu, obj_in=data)
         return schemas.ResponseSubmenuSchema(**updated_submenu.to_dict())
 
-    async def delete_submenu(self, db: AsyncSession, menu_id: int, submenu_id: int):
+    async def delete_submenu(self, db: AsyncSession, menu_id: UUID, submenu_id: UUID):
         """Delete submenu by IDs of menu adn submenu."""
         sub_menu: models.SubmenuDBModel = await self.get_submenu_by_id_or_404(
             db=db, menu_id=menu_id, submenu_id=submenu_id

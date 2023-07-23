@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseConfig, BaseModel
 
 
@@ -8,5 +10,5 @@ class APISchema(BaseModel):
 
 
 class BaseIdSchema(APISchema):
-   # flake8: noqa: A003
-    id: str
+    # flake8: noqa: A003
+    id: UUID

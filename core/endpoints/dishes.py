@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +12,7 @@ router = APIRouter()
 
 @router.get('/{menu_id}/submenus/{submenu_id}/dishes', status_code=200, response_model=List[schemas.ResponseDishSchema])
 async def get_dish_list(
-    menu_id: int, submenu_id: int, db: AsyncSession = Depends(get_session)
+    menu_id: UUID, submenu_id: UUID, db: AsyncSession = Depends(get_session)
 ) -> List[schemas.ResponseDishSchema]:
     """Get submenu's dishes."""
 
@@ -23,7 +24,7 @@ async def get_dish_list(
 
 @router.post('/{menu_id}/submenus/{submenu_id}/dishes', status_code=201, response_model=schemas.ResponseDishSchema)
 async def create_dish(
-    menu_id: int, submenu_id: int, data: schemas.DishSchema, db: AsyncSession = Depends(get_session)
+    menu_id: UUID, submenu_id: UUID, data: schemas.DishSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseDishSchema:
     """Add dish for submenu."""
 
@@ -37,7 +38,7 @@ async def create_dish(
     '/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', status_code=200, response_model=schemas.ResponseDishSchema
 )
 async def detail_dish(
-    menu_id: int, submenu_id: int, dish_id: int, db: AsyncSession = Depends(get_session)
+    menu_id: UUID, submenu_id: UUID, dish_id: UUID, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseDishSchema:
     """Get dish's detail."""
 
@@ -51,7 +52,11 @@ async def detail_dish(
     '/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', status_code=200, response_model=schemas.ResponseDishSchema
 )
 async def update_dish(
-    menu_id: int, submenu_id: int, dish_id: int, data: schemas.UpdateDishSchema, db: AsyncSession = Depends(get_session)
+    menu_id: UUID,
+    submenu_id: UUID,
+    dish_id: UUID,
+    data: schemas.UpdateDishSchema,
+    db: AsyncSession = Depends(get_session),
 ) -> schemas.ResponseDishSchema:
     """Update dish's properties:
 
@@ -65,7 +70,7 @@ async def update_dish(
 
 
 @router.delete('/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', status_code=200)
-async def delete_dish(menu_id: int, submenu_id: int, dish_id: int, db: AsyncSession = Depends(get_session)) -> None:
+async def delete_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID, db: AsyncSession = Depends(get_session)) -> None:
     """Delete dish."""
 
     await services.dishes_service.delete_dish(db=db, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)

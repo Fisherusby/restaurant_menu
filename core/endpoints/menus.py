@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,7 +27,7 @@ async def create_menu(data: schemas.MenuSchema, db: AsyncSession = Depends(get_s
 
 
 @router.get('/{menu_id}', status_code=200, response_model=schemas.ResponseMenuWithCountSchema)
-async def detail_menu(menu_id: int, db: AsyncSession = Depends(get_session)) -> schemas.ResponseMenuWithCountSchema:
+async def detail_menu(menu_id: UUID, db: AsyncSession = Depends(get_session)) -> schemas.ResponseMenuWithCountSchema:
     """Get menu's detail."""
 
     menu: schemas.ResponseMenuWithCountSchema = await services.menus_service.get_menu(db=db, menu_id=menu_id)
@@ -35,7 +36,7 @@ async def detail_menu(menu_id: int, db: AsyncSession = Depends(get_session)) -> 
 
 @router.patch('/{menu_id}', status_code=200, response_model=schemas.ResponseMenuSchema)
 async def update_menu(
-    menu_id: int, data: schemas.UpdateMenuSchema, db: AsyncSession = Depends(get_session)
+    menu_id: UUID, data: schemas.UpdateMenuSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseMenuSchema:
     """Update menu's properties:
 
@@ -47,7 +48,7 @@ async def update_menu(
 
 
 @router.delete('/{menu_id}', status_code=200)
-async def delete_menu(menu_id: int, db: AsyncSession = Depends(get_session)) -> None:
+async def delete_menu(menu_id: UUID, db: AsyncSession = Depends(get_session)) -> None:
     """Delete menu."""
 
     await services.menus_service.delete_menu(db=db, menu_id=menu_id)

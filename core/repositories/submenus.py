@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +9,7 @@ from core.repositories.base import BaseRepository
 
 
 class SubmenuRepository(BaseRepository):
-    async def get_counts(self, db: AsyncSession, submenu_id: int) -> Optional[int]:
+    async def get_counts(self, db: AsyncSession, submenu_id: UUID) -> Optional[int]:
         """Get counts of dishes in submenu from database."""
         query = (
             select(func.count(models.DishDBModel.id))

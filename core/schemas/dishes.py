@@ -1,4 +1,5 @@
 from typing import Optional, Union
+from uuid import UUID
 
 from core.schemas.base import APISchema, BaseIdSchema
 
@@ -31,7 +32,7 @@ class DishWithSubmenuIdSchema(DishSchema):
     Used for create dish.
     """
 
-    submenu_id: int
+    submenu_id: UUID
 
 
 class ResponseDishSchema(DishWithSubmenuIdSchema, BaseIdSchema):
