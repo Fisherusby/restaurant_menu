@@ -1,15 +1,8 @@
-from typing import Optional, Union
+from decimal import Decimal
+from typing import Optional
 from uuid import UUID
 
-from pydantic import field_validator
-
 from core.schemas.base import APISchema, BaseIdSchema
-
-
-def validate_price(v):
-    if float(v) <= 0:
-        raise ValueError("Price must be greater than zero")
-    return v
 
 
 class DishSchema(APISchema):
@@ -20,11 +13,7 @@ class DishSchema(APISchema):
 
     title: str
     description: str
-    price: Union[str, float]
-
-    @field_validator('price')
-    def price_validator(cls, v):
-        return validate_price(v)
+    price: Decimal
 
 
 class UpdateDishSchema(APISchema):
@@ -35,13 +24,7 @@ class UpdateDishSchema(APISchema):
 
     title: Optional[str] = None
     description: Optional[str] = None
-    price: Optional[Union[str, float]] = None
-
-    @field_validator('price')
-    def price_validator(cls, v):
-        if v is None:
-            return v
-        return validate_price(v)
+    price: Optional[Decimal] = None
 
 
 class DishWithSubmenuIdSchema(DishSchema):

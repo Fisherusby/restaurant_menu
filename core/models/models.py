@@ -34,10 +34,3 @@ class DishDBModel(BaseDBModel):
     submenu_id = Column(UUID(as_uuid=True), ForeignKey('submenus.id', ondelete="CASCADE"), nullable=False)
 
     submenu = relationship("SubmenuDBModel", foreign_keys=[submenu_id], back_populates='dishes')
-
-    # flake8: noqa: A003
-    def to_dict(self):
-        result = super().to_dict()
-        if result.get('price'):
-            result['price'] = str(result['price'])
-        return result
