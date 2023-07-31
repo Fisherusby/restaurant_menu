@@ -1,0 +1,15 @@
+name: Docker Compose Test Actions Workflow
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        run: run_tests.sh
