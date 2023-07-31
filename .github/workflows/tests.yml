@@ -12,6 +12,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Test
-        run: |
-          chmod +x ./run_tests.sh
-          ./run_tests.sh
+        run: bash ${GITHUB_WORKSPACE}/run_tests.sh
