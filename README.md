@@ -39,7 +39,7 @@
 
 Если FastAPI синхронное - тесты синхронные, Если асинхронное - тесты асинхронные (✅ тесты асинхронные)
 
-*** Добавлен githab action workflow для тестов (triggered automatically on push, pull request to main)
+*** Добавлен [githab action workflow(.github/workflows/tests.yml)] для тестов (triggered automatically on push, pull request to main)
 
 ## II. Used Tech Stack
 
