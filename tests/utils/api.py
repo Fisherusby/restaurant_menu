@@ -22,9 +22,10 @@ class ApiTestService:
     }
 
     def __init__(self, async_client: AsyncClient):
-        self.client = async_client
+        self.client: AsyncClient = async_client
 
     async def list(self, entity: str, status_code: int = 200, **ids):
+        """Call API for test a list of entities."""
         url = self.urls[entity][0].format(**ids)
         response = await self.client.get(url=url)
         assert response.status_code == status_code
@@ -41,6 +42,7 @@ class ApiTestService:
             return response
 
     async def create(self, entity, json, status_code=201, **ids):
+        """Call API for create entity."""
         url = self.urls[entity][0].format(**ids)
         response = await self.client.post(url=url, json=json)
         assert response.status_code == status_code
@@ -56,6 +58,7 @@ class ApiTestService:
             return response
 
     async def read(self, entity, status_code=200, **ids):
+        """Call API for get the entity."""
         url = self.urls[entity][1].format(**ids)
         response = await self.client.get(url=url)
         assert response.status_code == status_code
@@ -71,6 +74,7 @@ class ApiTestService:
             return response
 
     async def update(self, entity, json, status_code=200, **ids):
+        """Call API for update the entity."""
         url = self.urls[entity][1].format(**ids)
         response = await self.client.patch(url=url, json=json)
         assert response.status_code == status_code
@@ -88,6 +92,7 @@ class ApiTestService:
             return response
 
     async def delete(self, entity, status_code=200, **ids):
+        """Call API for delete the entity."""
         url = self.urls[entity][1].format(**ids)
         response = await self.client.delete(url=url)
         assert response.status_code == status_code
