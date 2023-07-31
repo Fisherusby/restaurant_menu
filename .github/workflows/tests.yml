@@ -12,4 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Test
-        run: bash ${GITHUB_WORKSPACE}/run_tests.sh
+        run: |
+          ls
+          bash ${GITHUB_WORKSPACE}/run_tests.sh
