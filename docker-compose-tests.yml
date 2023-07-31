@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  fastapi_test:
+    container_name: fastapi_backend_test
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: /start_reload.sh
+    depends_on:
+      postgres_test:
+        condition: service_healthy
+    env_file:
+      - .env_test
+    networks:
+      - ylab_network_test
+
+  postgres_test:
+    container_name: main_db_test
+    image: postgres:15.1-alpine
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: [ "CMD", "pg_isready" , "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 20s
+      retries: 5
+    env_file:
+      - .env_test
+    networks:
+      - ylab_network_test
+
+networks:
+  ylab_network_test:
+    driver: bridge

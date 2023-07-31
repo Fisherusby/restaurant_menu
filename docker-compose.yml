@@ -12,21 +12,21 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/app
-    environment:
-      - MODULE_NAME=core.main
     depends_on:
       postgres:
         condition: service_healthy
     ports:
       - "8000:80"
-    command: /init_db.sh
+    command: /start_reload.sh
     env_file:
       - .env
+    networks:
+      - ylab_network
 
   postgres:
     container_name: main_db
     restart: always
-    image: postgres:12
+    image: postgres:15.1-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/pgdata
     ports:
@@ -40,3 +40,9 @@ services:
       retries: 5
     env_file:
       - .env
+    networks:
+      - ylab_network
+
+networks:
+  ylab_network:
+    driver: bridge

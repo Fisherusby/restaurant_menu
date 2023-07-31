@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
@@ -9,28 +9,23 @@ from core.repositories.base import BaseRepository
 
 
 class MenuRepository(BaseRepository):
-    async def get_counts(self, db: AsyncSession, menu_id: UUID) -> Optional[Tuple[int, int]]:
-        """Get counts of dishes and submenus in menu from database."""
-        subquery_submenus = (
-            select(models.SubmenuDBModel.menu_id, func.count(models.SubmenuDBModel.id).label('submenus_count'))
-            .filter(models.SubmenuDBModel.menu_id == menu_id)
-            .group_by(models.SubmenuDBModel.menu_id)
-            .subquery()
-        )
+    async def get_menu_with_counts(
+        self, db: AsyncSession, menu_id: UUID
+    ) -> Optional[Tuple[models.MenuDBModel, int, int]]:
+        """Get menu with counts of dishes and submenus in menu from database."""
 
-        subquery_dishes = (
-            select(models.SubmenuDBModel.menu_id, func.count(models.DishDBModel.id).label('dishes_count'))
-            .filter(models.SubmenuDBModel.menu_id == menu_id)
-            .join(models.SubmenuDBModel.dishes)
-            .group_by(models.SubmenuDBModel.menu_id)
-            .subquery()
-        )
-
-        query = select(subquery_submenus.c.submenus_count, subquery_dishes.c.dishes_count).where(
-            subquery_submenus.c.menu_id == subquery_dishes.c.menu_id
+        query = (
+            select(
+                self.model, func.count(distinct(models.SubmenuDBModel.id)), func.count(distinct(models.DishDBModel.id))
+            )
+            .select_from(self.model, models.SubmenuDBModel)
+            .filter(self.model.id == menu_id)
+            .join(models.SubmenuDBModel, isouter=True)
+            .join(models.DishDBModel, models.SubmenuDBModel.id == models.DishDBModel.submenu_id, isouter=True)
+            .group_by(self.model)
         )
         result = (await db.execute(query)).first()
-        return result if result is not None else (0, 0)
+        return result
 
 
 menus = MenuRepository(models.MenuDBModel)

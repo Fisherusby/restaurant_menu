@@ -1,16 +1,17 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11-slim
+FROM python:3.10-slim
 
 WORKDIR /app/
 
 # Install packages
 RUN apt update && apt install -y wget curl && rm -rf /var/lib/apt/lists/*  \
-    && pip install --upgrade pip && pip install --upgrade awscli
+    && pip install --upgrade pip && pip install --upgrade awscli && pip install uvicorn
 
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements.txt /requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /requirements.txt
 
-COPY ./init_db.sh /init_db.sh
-RUN chmod +x /init_db.sh
+COPY ./start_reload.sh /start_reload.sh
+
+RUN chmod +x /start_reload.sh
 
 COPY . /app

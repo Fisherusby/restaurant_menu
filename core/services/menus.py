@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Tuple
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -16,10 +16,17 @@ class MenusService(BaseObjectService):
 
     async def get_menu(self, db: AsyncSession, menu_id: UUID) -> schemas.ResponseMenuWithCountSchema:
         """Get menu data by ID."""
-        menu: models.MenuDBModel = await self.get_menu_by_id_or_404(db=db, menu_id=menu_id)
-        submenus_count, dishes_count = await self.repository.get_counts(db=db, menu_id=menu_id)
+        menu: Optional[Tuple[models.MenuDBModel, int, int]] = await self.repository.get_menu_with_counts(
+            db=db, menu_id=menu_id
+        )
+
+        if menu is None:
+            raise HTTPException(status_code=404, detail="menu not found")
+
         return schemas.ResponseMenuWithCountSchema(
-            **menu.to_dict(), submenus_count=submenus_count, dishes_count=dishes_count
+            **menu[0].to_dict(),
+            submenus_count=menu[1] if menu[1] is not None else 0,
+            dishes_count=menu[2] if menu[2] is not None else 0
         )
 
     async def create_menu(self, db: AsyncSession, data: schemas.MenuSchema) -> schemas.ResponseMenuSchema:
@@ -43,7 +50,7 @@ class MenusService(BaseObjectService):
 
     async def get_menu_by_id_or_404(self, db: AsyncSession, menu_id: UUID) -> models.MenuDBModel:
         """Get menu data by ID or rise http 404 if non-exist."""
-        menu: models.MenuDBModel = await self.repository.get_by_id(db=db, obj_id=menu_id)
+        menu: Optional[models.MenuDBModel] = await self.repository.get_by_id(db=db, obj_id=menu_id)
 
         if menu is None:
             raise HTTPException(status_code=404, detail="menu not found")

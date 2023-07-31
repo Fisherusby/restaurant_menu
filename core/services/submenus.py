@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Tuple
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -13,11 +13,15 @@ class SubmenusService(BaseObjectService):
         self, db: AsyncSession, menu_id: UUID, submenu_id: UUID
     ) -> schemas.ResponseSubmenuWithCountSchema:
         """Get submenu data by IDs of menu and submenu."""
-        submenu: models.SubmenuDBModel = await self.get_submenu_by_id_or_404(
+        submenu: Optional[Tuple[models.SubmenuDBModel, int]] = await self.repository.get_submenu_with_dish_count(
             db=db, submenu_id=submenu_id, menu_id=menu_id
         )
-        dishes_count = await self.repository.get_counts(db=db, submenu_id=submenu_id)
-        return schemas.ResponseSubmenuWithCountSchema(**submenu.to_dict(), dishes_count=dishes_count)
+
+        if submenu is None:
+            raise HTTPException(status_code=404, detail="submenu not found")
+        return schemas.ResponseSubmenuWithCountSchema(
+            **submenu[0].to_dict(), dishes_count=submenu[1] if submenu[1] is not None else 0
+        )
 
     async def get_submenu_list(self, db: AsyncSession, menu_id: UUID) -> List[schemas.ResponseSubmenuSchema]:
         """Get a list of submenus in menu."""
@@ -32,7 +36,7 @@ class SubmenusService(BaseObjectService):
         self, db: AsyncSession, menu_id: UUID, submenu_id: UUID
     ) -> models.SubmenuDBModel:
         """Get submenu data by IDs of menu and submenu or rise http 404 if non-exist."""
-        submenu: models.SubmenuDBModel = await self.repository.get_by_fields(
+        submenu: Optional[models.SubmenuDBModel] = await self.repository.get_by_fields(
             db=db,
             fields={
                 'id': submenu_id,
