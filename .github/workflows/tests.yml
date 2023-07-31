@@ -11,8 +11,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - name: Up test environment
+        run: docker compose -f docker-compose-tests.yml up -d --build
       - name: Test
-        run: | 
-          chmod +x run_tests.sh
-          bash run_tests.sh
+        run: docker exec fastapi_backend_test python3 -m pytest -v
+      - name: Down test environment
+        run: docker compose -f docker-compose-tests.yml down
