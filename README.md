@@ -32,8 +32,8 @@
 (DB) postgres:15.1-alpine <br>
 (✅ Необходимые образы использованы)
 
-1. ✅ Написать CRUD тесты для ранее разработанного API с помощью библиотеки pytest (✅ [tests/](tests/))
-2. ✅ Подготовить отдельный контейнер для запуска тестов. Команду для запуска указать в README.md (✅ [linc](https://github.com/Fisherus/ylab-dz1#iv-run-tests))
+1. Написать CRUD тесты для ранее разработанного API с помощью библиотеки pytest (✅ [tests/](tests/))
+2. Подготовить отдельный контейнер для запуска тестов. Команду для запуска указать в README.md (✅ [linc](https://github.com/Fisherus/ylab-dz1#iv-run-tests))
 3. \* Реализовать вывод количества подменю и блюд для Меню через один (сложный) ORM запрос. (✅ [Menu: core/repositories/menus.py](core/repositories/menus.py), [Submenu: core/repositories/submenus.py](core/repositories/submenus.py))
 4. ** Реализовать тестовый сценарий «Проверка кол-ва блюд и подменю в меню» из Postman с помощью pytest (✅ [Menu: tests/test_api_flow.py::TestApiFlow](tests/test_api_flow.py))
 
