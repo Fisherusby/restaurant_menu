@@ -12,4 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Test
-        run: run_tests.sh
+        run: |
+          chmod +x ./run_tests.sh
+          ./run_tests.sh
