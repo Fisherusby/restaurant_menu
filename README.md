@@ -75,22 +75,8 @@ docker compose up -d --build
 
 For running tests you need to execute script run_tests.sh
 ```
-/bin/sh ./run_tests.sh
+docker compose -f docker-compose-tests.yml up --build
 ```
-or without using script:
-- up test environment
-```commandline
-docker compose -f docker-compose-tests.yml up -d --build
-```
-- run tests
-```
-docker exec fastapi_backend_test python3 -m pytest -v
-```
-- down test environment after complicated
-```
-docker compose -f docker-compose-tests.yml down -v
-```
-
 
 ## V. UI Api Documentation (Swagger endpoint)
 http://localhost:8000/swagger

@@ -13,8 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Up test environment
-        run: docker compose -f docker-compose-tests.yml up -d --build
+        run: |
+          cp .env_test .env
+          docker compose -f docker-compose.yml up -d --build
       - name: Test
         run: docker exec fastapi_backend_test python3 -m pytest -v
       - name: Down test environment
-        run: docker compose -f docker-compose-tests.yml down
+        run: docker compose -f docker-compose.yml down
