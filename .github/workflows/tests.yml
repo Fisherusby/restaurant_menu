@@ -17,6 +17,6 @@ jobs:
           cp .env_test .env
           docker compose -f docker-compose.yml up -d --build
       - name: Test
-        run: docker exec fastapi_backend_test python3 -m pytest -v
+        run: docker exec fastapi_backend python3 -m pytest -v
       - name: Down test environment
         run: docker compose -f docker-compose.yml down
