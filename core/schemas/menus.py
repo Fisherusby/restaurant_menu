@@ -1,5 +1,3 @@
-from typing import Optional
-
 from core.schemas.base import APISchema, BaseIdSchema
 
 
@@ -19,8 +17,8 @@ class UpdateMenuSchema(APISchema):
     Used for update menu.
     """
 
-    title: Optional[str] = None
-    description: Optional[str] = None
+    title: str | None = None
+    description: str | None = None
 
 
 class ResponseMenuSchema(MenuSchema, BaseIdSchema):

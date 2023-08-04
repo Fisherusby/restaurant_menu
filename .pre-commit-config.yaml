@@ -1,18 +1,54 @@
 repos:
-  - repo: https://github.com/psf/black
-    rev: 23.1.0
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.2.0
     hooks:
-      - id: black
-  - repo: https://github.com/pycqa/isort
+    -   id: trailing-whitespace  # убирает лишние пробелы
+    -   id: check-added-large-files  # проверяет тяжелые файлы на изменения
+    -   id: check-yaml  # проверяет синтаксис .yaml файлов
+    -   id: check-json  # проверяет синтаксис .json файлов
+        exclude: launch.json
+    -   id: check-case-conflict  # проверяет файлы, которые могут конфликтовать в файловых системах без учета регистра.
+    -   id: check-merge-conflict  # проверяет файлы, содержащие конфликтные строки слияния.
+    -   id: double-quote-string-fixer  # заменяет " на '
+    -   id: end-of-file-fixer  # добавляет пустую строку в конце файла
+
+# Отсортировывает импорты в проекте
+-   repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
       - id: isort
-  - repo: https://github.com/PyCQA/docformatter
-    rev: v1.5.0
+        exclude: __init__.py
+        args: [ --profile, black, --filter-files ]
+
+# Обновляет синтаксис Python кода в соответствии с последними версиями
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v2.31.1
     hooks:
-      - id: docformatter
-        entry: docformatter -i --wrap-summaries 120 --wrap-descriptions 120
-  - repo: https://github.com/python-poetry/poetry
+    -   id: pyupgrade
+        args: [--py310-plus]
+
+# Форматирует код под PEP8
+-   repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v2.0.1
+    hooks:
+    -   id: autopep8
+        args: [--max-line-length=120, --in-place]
+
+# Сканер стилистических ошибок, нарушающие договоренности PEP8
+-   repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+    -   id: flake8
+        exclude: "__init__.py"
+        args: ["--ignore=E501,F821", "--max-line-length=120"]
+
+# Проверка статических типов с помощью mypy
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.991
+    hooks:
+    -   id: mypy
+        exclude: 'migrations'
+-   repo: https://github.com/python-poetry/poetry
     rev: '1.3.1'
     hooks:
       - id: poetry-check

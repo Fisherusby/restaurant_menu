@@ -1,12 +1,9 @@
-from typing import Dict, List, Optional
-
 import pytest
 from httpx import AsyncClient, Response
 
 from core import models
 from tests.base import BaseTestCase
-from tests.utils.crud import CRUDDataBase
-from tests.utils.uuid_tool import uuid_or_none
+from tests.utils import CRUDDataBase, uuid_or_none
 
 
 class TestDishes(BaseTestCase):
@@ -68,7 +65,7 @@ class TestDishes(BaseTestCase):
         menu_id: str,
         submenu_id: str,
         expected_status_code: int,
-        expected_response: Optional[Dict[str, str]],
+        expected_response: dict[str, str] | None,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
     ):
@@ -83,21 +80,21 @@ class TestDishes(BaseTestCase):
         if response.status_code != 200:
             return
 
-        db_objs: List[models.DishDBModel] = await async_crud_with_data.get_by_mul_field(
+        db_objs: list[models.DishDBModel] = await async_crud_with_data.get_by_mul_field(
             models.DishDBModel, {'submenu_id': uuid_or_none(submenu_id)}, only_one=False
         )
 
-        resp_json: Dict[str, str] = response.json()
+        resp_json: list[dict[str, str]] = response.json()
         assert len(resp_json) == len(db_objs)
 
-        db_objs: Dict[str, models.DishDBModel] = {str(obj.id): obj for obj in db_objs}
+        db_objs_dict: dict[str, models.DishDBModel] = {str(obj.id): obj for obj in db_objs}
 
         for resp_obj in resp_json:
-            assert resp_obj['id'] == str(db_objs[resp_obj['id']].id)
-            assert resp_obj['submenu_id'] == str(db_objs[resp_obj['id']].submenu_id)
-            assert resp_obj['title'] == db_objs[resp_obj['id']].title
-            assert resp_obj['description'] == db_objs[resp_obj['id']].description
-            assert resp_obj['price'] == str(db_objs[resp_obj['id']].price)
+            assert resp_obj['id'] == str(db_objs_dict[resp_obj['id']].id)
+            assert resp_obj['submenu_id'] == str(db_objs_dict[resp_obj['id']].submenu_id)
+            assert resp_obj['title'] == db_objs_dict[resp_obj['id']].title
+            assert resp_obj['description'] == db_objs_dict[resp_obj['id']].description
+            assert resp_obj['price'] == str(db_objs_dict[resp_obj['id']].price)
 
     @pytest.mark.parametrize(
         'menu_id,submenu_id,created_data,expected_status_code,expected_response',
@@ -108,7 +105,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish create', 'description': 'Dish description create', 'price': '55.33'},
                 201,
                 None,
-                id="All payload data",
+                id='All payload data',
             ),
             # wrong payload data
             pytest.param(
@@ -117,7 +114,7 @@ class TestDishes(BaseTestCase):
                 {'description': 'Dish description create', 'price': '55.33'},
                 422,
                 None,
-                id="Without title",
+                id='Without title',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -125,7 +122,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish create', 'price': '55.33'},
                 422,
                 None,
-                id="Without description",
+                id='Without description',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -136,7 +133,7 @@ class TestDishes(BaseTestCase):
                 },
                 422,
                 None,
-                id="Without price",
+                id='Without price',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -144,7 +141,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish create', 'description': 'Dish description create', 'price': '-10'},
                 422,
                 None,
-                id="Price lese than zero",
+                id='Price lese than zero',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -152,7 +149,7 @@ class TestDishes(BaseTestCase):
                 {},
                 422,
                 None,
-                id="Empty payload",
+                id='Empty payload',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -160,7 +157,7 @@ class TestDishes(BaseTestCase):
                 None,
                 422,
                 None,
-                id="Without payload",
+                id='Without payload',
             ),
             # exist IDs but mixed up
             pytest.param(
@@ -168,8 +165,8 @@ class TestDishes(BaseTestCase):
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
                 {'title': 'Dish create', 'description': 'Dish description create', 'price': '55.33'},
                 404,
-                {"detail": "submenu not found"},
-                id="Submenu not in menu",
+                {'detail': 'submenu not found'},
+                id='Submenu not in menu',
             ),
             # non-exist IDs
             pytest.param(
@@ -177,24 +174,24 @@ class TestDishes(BaseTestCase):
                 'f98d48cb-4383-411c-bc71-ac653ce42e09',
                 {'title': 'Dish create', 'description': 'Dish description create', 'price': '55.33'},
                 404,
-                {"detail": "submenu not found"},
-                id="Non-exist menu id",
+                {'detail': 'submenu not found'},
+                id='Non-exist menu id',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 {'title': 'Dish create', 'description': 'Dish description create', 'price': '55.33'},
                 404,
-                {"detail": "submenu not found"},
-                id="Non-exist submenu id",
+                {'detail': 'submenu not found'},
+                id='Non-exist submenu id',
             ),
             pytest.param(
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 {'title': 'Dish create', 'description': 'Dish description create', 'price': '55.33'},
                 404,
-                {"detail": "submenu not found"},
-                id="Non-exist ids menu and submenu",
+                {'detail': 'submenu not found'},
+                id='Non-exist ids menu and submenu',
             ),
             # wrong IDs
             pytest.param(
@@ -203,7 +200,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish create', 'description': 'Dish description create', 'price': '55.33'},
                 422,
                 None,
-                id="Bad menu id",
+                id='Bad menu id',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -211,7 +208,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish create', 'description': 'Dish description create', 'price': '55.33'},
                 422,
                 None,
-                id="Bad submenu id",
+                id='Bad submenu id',
             ),
             pytest.param(
                 'ffffffff',
@@ -219,7 +216,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish create', 'description': 'Dish description create', 'price': '55.33'},
                 422,
                 None,
-                id="Bad ids menu and submenu",
+                id='Bad ids menu and submenu',
             ),
         ),
     )
@@ -228,9 +225,9 @@ class TestDishes(BaseTestCase):
         self,
         menu_id: str,
         submenu_id: str,
-        created_data: Dict[str, str],
+        created_data: dict[str, str],
         expected_status_code: int,
-        expected_response: Optional[Dict[str, str]],
+        expected_response: dict[str, str] | None,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
     ):
@@ -262,13 +259,13 @@ class TestDishes(BaseTestCase):
                 '2ee022d7-7557-44df-a88e-a0bfb102eb53',
                 200,
                 {
-                    "id": "2ee022d7-7557-44df-a88e-a0bfb102eb53",
-                    "title": "Dish AA1",
-                    "description": "Description dish AA1",
-                    "price": "11.11",
-                    "submenu_id": "f98d48cb-4383-411c-bc71-ac653ce42e09",
+                    'id': '2ee022d7-7557-44df-a88e-a0bfb102eb53',
+                    'title': 'Dish AA1',
+                    'description': 'Description dish AA1',
+                    'price': '11.11',
+                    'submenu_id': 'f98d48cb-4383-411c-bc71-ac653ce42e09',
                 },
-                id="Dish AA1",
+                id='Dish AA1',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -276,13 +273,13 @@ class TestDishes(BaseTestCase):
                 '352590fa-434e-4436-b195-ada202625887',
                 200,
                 {
-                    "id": "352590fa-434e-4436-b195-ada202625887",
-                    "title": "Dish AA2",
-                    "description": "Description dish AA2",
-                    "price": "22.22",
-                    "submenu_id": "f98d48cb-4383-411c-bc71-ac653ce42e09",
+                    'id': '352590fa-434e-4436-b195-ada202625887',
+                    'title': 'Dish AA2',
+                    'description': 'Description dish AA2',
+                    'price': '22.22',
+                    'submenu_id': 'f98d48cb-4383-411c-bc71-ac653ce42e09',
                 },
-                id="Dish AA2",
+                id='Dish AA2',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -290,13 +287,13 @@ class TestDishes(BaseTestCase):
                 '2bb5b495-6473-463f-9d9a-cb6372e89a3e',
                 200,
                 {
-                    "id": "2bb5b495-6473-463f-9d9a-cb6372e89a3e",
-                    "title": "Dish AA3",
-                    "description": "Description dish AA3",
-                    "price": "33.33",
-                    "submenu_id": "f98d48cb-4383-411c-bc71-ac653ce42e09",
+                    'id': '2bb5b495-6473-463f-9d9a-cb6372e89a3e',
+                    'title': 'Dish AA3',
+                    'description': 'Description dish AA3',
+                    'price': '33.33',
+                    'submenu_id': 'f98d48cb-4383-411c-bc71-ac653ce42e09',
                 },
-                id="Dish AA3",
+                id='Dish AA3',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -304,13 +301,13 @@ class TestDishes(BaseTestCase):
                 'ffaa2434-b33d-490f-847d-a29318f4c106',
                 200,
                 {
-                    "id": "ffaa2434-b33d-490f-847d-a29318f4c106",
-                    "title": "Dish AB1",
-                    "description": "Description dish AB1",
-                    "price": "44.44",
-                    "submenu_id": "c0861bf3-311d-4db7-8677-d7ee5052adc9",
+                    'id': 'ffaa2434-b33d-490f-847d-a29318f4c106',
+                    'title': 'Dish AB1',
+                    'description': 'Description dish AB1',
+                    'price': '44.44',
+                    'submenu_id': 'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 },
-                id="Dish AB1",
+                id='Dish AB1',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -318,13 +315,13 @@ class TestDishes(BaseTestCase):
                 'dd0a3fc5-154f-487a-a4bf-b5a90fcaf67f',
                 200,
                 {
-                    "id": "dd0a3fc5-154f-487a-a4bf-b5a90fcaf67f",
-                    "title": "Dish AB2",
-                    "description": "Description dish AB2",
-                    "price": "55.55",
-                    "submenu_id": "c0861bf3-311d-4db7-8677-d7ee5052adc9",
+                    'id': 'dd0a3fc5-154f-487a-a4bf-b5a90fcaf67f',
+                    'title': 'Dish AB2',
+                    'description': 'Description dish AB2',
+                    'price': '55.55',
+                    'submenu_id': 'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 },
-                id="Dish AB2",
+                id='Dish AB2',
             ),
             pytest.param(
                 'aafe18cc-7986-4f72-9e37-adafa0f1f5b3',
@@ -339,7 +336,7 @@ class TestDishes(BaseTestCase):
                 'f98d48cb-4383-411c-bc71-ac653ce42e09',
                 'dd0a3fc5-154f-487a-a4bf-b5a90fcaf67f',
                 404,
-                {"detail": "dish not found"},
+                {'detail': 'dish not found'},
                 id="Dish not in menu's submenu",
             ),
             pytest.param(
@@ -347,7 +344,7 @@ class TestDishes(BaseTestCase):
                 'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 '2bb5b495-6473-463f-9d9a-cb6372e89a3e',
                 404,
-                {"detail": "dish not found"},
+                {'detail': 'dish not found'},
                 id="Dish not in menu's submenu",
             ),
             pytest.param(
@@ -363,7 +360,7 @@ class TestDishes(BaseTestCase):
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'dd0a3fc5-154f-487a-a4bf-b5a90fcaf67f',
                 404,
-                {"detail": "dish not found"},
+                {'detail': 'dish not found'},
                 id='Non-exist submenu id',
             ),
             pytest.param(
@@ -371,7 +368,7 @@ class TestDishes(BaseTestCase):
                 'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 404,
-                {"detail": "dish not found"},
+                {'detail': 'dish not found'},
                 id='Non-exist dish id',
             ),
             pytest.param(
@@ -379,7 +376,7 @@ class TestDishes(BaseTestCase):
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'dd0a3fc5-154f-487a-a4bf-b5a90fcaf67f',
                 404,
-                {"detail": "dish not found"},
+                {'detail': 'dish not found'},
                 id='Non-exist ids menu and submenu',
             ),
             pytest.param(
@@ -387,7 +384,7 @@ class TestDishes(BaseTestCase):
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 404,
-                {"detail": "dish not found"},
+                {'detail': 'dish not found'},
                 id='Non-exist ids submenu and dish',
             ),
             pytest.param(
@@ -395,7 +392,7 @@ class TestDishes(BaseTestCase):
                 'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 404,
-                {"detail": "dish not found"},
+                {'detail': 'dish not found'},
                 id='Non-exist ids menu and dish',
             ),
             pytest.param(
@@ -403,7 +400,7 @@ class TestDishes(BaseTestCase):
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 404,
-                {"detail": "dish not found"},
+                {'detail': 'dish not found'},
                 id='Non-exist ids menu, submenu and dish',
             ),
             pytest.param(
@@ -439,7 +436,7 @@ class TestDishes(BaseTestCase):
         submenu_id: str,
         dish_id: str,
         expected_status_code: int,
-        expected_response: Optional[Dict[str, str]],
+        expected_response: dict[str, str] | None,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
     ):
@@ -448,7 +445,7 @@ class TestDishes(BaseTestCase):
 
         assert response.status_code == expected_status_code
 
-        db_obj: Optional[models.DishDBModel] = await async_crud_with_data.get_by_mul_field(
+        db_obj: models.DishDBModel | None = await async_crud_with_data.get_by_mul_field(
             models.DishDBModel,
             fields={
                 'id': uuid_or_none(dish_id),
@@ -482,7 +479,7 @@ class TestDishes(BaseTestCase):
                     'description': 'Dish description updated',
                     'price': '99.99',
                 },
-                id="All fields",
+                id='All fields',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -497,7 +494,7 @@ class TestDishes(BaseTestCase):
                     'description': 'Dish description updated',
                     'price': '99.99',
                 },
-                id="Without title",
+                id='Without title',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -512,7 +509,7 @@ class TestDishes(BaseTestCase):
                     'description': 'Description dish AA1',
                     'price': '99.99',
                 },
-                id="Without description",
+                id='Without description',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -527,7 +524,7 @@ class TestDishes(BaseTestCase):
                     'description': 'Dish description updated',
                     'price': '11.11',
                 },
-                id="Without price",
+                id='Without price',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -542,7 +539,7 @@ class TestDishes(BaseTestCase):
                     'description': 'Description dish AA1',
                     'price': '11.11',
                 },
-                id="Empty payload",
+                id='Empty payload',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -551,7 +548,7 @@ class TestDishes(BaseTestCase):
                 None,
                 422,
                 None,
-                id="Without pyload",
+                id='Without pyload',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -581,7 +578,7 @@ class TestDishes(BaseTestCase):
                     'description': 'Dish description updated',
                     'price': '99.00',
                 },
-                id="Price without scale",
+                id='Price without scale',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -596,7 +593,7 @@ class TestDishes(BaseTestCase):
                     'description': 'Dish description updated',
                     'price': '100.00',
                 },
-                id="Price as float",
+                id='Price as float',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -605,7 +602,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish update', 'description': 'Dish description updated', 'price': '-10'},
                 422,
                 None,
-                id="Price lese than zero",
+                id='Price lese than zero',
             ),
             pytest.param(
                 'aafe18cc-7986-4f72-9e37-adafa0f1f5b3',
@@ -614,7 +611,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish update', 'description': 'Dish description updated', 'price': '99.99'},
                 404,
                 {'detail': 'dish not found'},
-                id="Dish not in submenu and submenu not in menu",
+                id='Dish not in submenu and submenu not in menu',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -641,7 +638,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish update', 'description': 'Dish description updated', 'price': '99.99'},
                 200,
                 None,
-                id="Non-exist menu id",
+                id='Non-exist menu id',
             ),  # fix
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -650,7 +647,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish update', 'description': 'Dish description updated', 'price': '99.99'},
                 404,
                 {'detail': 'dish not found'},
-                id="Non-exist submenu id",
+                id='Non-exist submenu id',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -659,7 +656,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish update', 'description': 'Dish description updated', 'price': '99.99'},
                 404,
                 {'detail': 'dish not found'},
-                id="Non-exist dish id",
+                id='Non-exist dish id',
             ),
             pytest.param(
                 'ffffffff',
@@ -668,7 +665,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish update', 'description': 'Dish description updated', 'price': '99.99'},
                 422,
                 None,
-                id="Bad menu id",
+                id='Bad menu id',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -677,7 +674,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish update', 'description': 'Dish description updated', 'price': '99.99'},
                 422,
                 None,
-                id="Bad submenu id",
+                id='Bad submenu id',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -686,7 +683,7 @@ class TestDishes(BaseTestCase):
                 {'title': 'Dish update', 'description': 'Dish description updated', 'price': '99.99'},
                 422,
                 None,
-                id="Bad dish id",
+                id='Bad dish id',
             ),
         ),
     )
@@ -696,9 +693,9 @@ class TestDishes(BaseTestCase):
         menu_id: str,
         submenu_id: str,
         dish_id: str,
-        updated_data: Dict[str, str],
+        updated_data: dict[str, str],
         expected_status_code: int,
-        expected_response: Optional[Dict[str, str]],
+        expected_response: dict[str, str] | None,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
     ):
@@ -774,7 +771,7 @@ class TestDishes(BaseTestCase):
                 'f98d48cb-4383-411c-bc71-ac653ce42e09',
                 'dd0a3fc5-154f-487a-a4bf-b5a90fcaf67f',
                 404,
-                {"detail": "dish not found"},
+                {'detail': 'dish not found'},
                 id="Dish non in menu's submenu",
             ),
             pytest.param(
@@ -782,8 +779,8 @@ class TestDishes(BaseTestCase):
                 'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 '2bb5b495-6473-463f-9d9a-cb6372e89a3e',
                 404,
-                {"detail": "dish not found"},
-                id="Dish not in submenu and submenu not in menu",
+                {'detail': 'dish not found'},
+                id='Dish not in submenu and submenu not in menu',
             ),
             pytest.param(
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
@@ -791,55 +788,55 @@ class TestDishes(BaseTestCase):
                 'dd0a3fc5-154f-487a-a4bf-b5a90fcaf67f',
                 200,
                 None,
-                id="Non-exist menu id",
+                id='Non-exist menu id',
             ),  # fix
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'dd0a3fc5-154f-487a-a4bf-b5a90fcaf67f',
                 404,
-                {"detail": "dish not found"},
-                id="Non-exist submenu id",
+                {'detail': 'dish not found'},
+                id='Non-exist submenu id',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
                 'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 404,
-                {"detail": "dish not found"},
-                id="Non-exist dish id",
+                {'detail': 'dish not found'},
+                id='Non-exist dish id',
             ),
             pytest.param(
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'dd0a3fc5-154f-487a-a4bf-b5a90fcaf67f',
                 404,
-                {"detail": "dish not found"},
-                id="Non-exist menu id and submenu id",
+                {'detail': 'dish not found'},
+                id='Non-exist menu id and submenu id',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 404,
-                {"detail": "dish not found"},
-                id="Non-exist submenu id and dish id",
+                {'detail': 'dish not found'},
+                id='Non-exist submenu id and dish id',
             ),
             pytest.param(
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 404,
-                {"detail": "dish not found"},
-                id="Non-exist menu id and dish id",
+                {'detail': 'dish not found'},
+                id='Non-exist menu id and dish id',
             ),
             pytest.param(
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 404,
-                {"detail": "dish not found"},
-                id="Non-exist ids menu, submenu and dish",
+                {'detail': 'dish not found'},
+                id='Non-exist ids menu, submenu and dish',
             ),
             pytest.param(
                 'ffffffff',
@@ -847,7 +844,7 @@ class TestDishes(BaseTestCase):
                 'dd0a3fc5-154f-487a-a4bf-b5a90fcaf67f',
                 422,
                 None,
-                id="Bad menu id",
+                id='Bad menu id',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -855,7 +852,7 @@ class TestDishes(BaseTestCase):
                 'dd0a3fc5-154f-487a-a4bf-b5a90fcaf67f',
                 422,
                 None,
-                id="Bad submenu id",
+                id='Bad submenu id',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -863,7 +860,7 @@ class TestDishes(BaseTestCase):
                 'ffffffff',
                 422,
                 None,
-                id="Bad dish id",
+                id='Bad dish id',
             ),
         ),
     )
@@ -874,7 +871,7 @@ class TestDishes(BaseTestCase):
         submenu_id: str,
         dish_id: str,
         expected_status_code: int,
-        expected_response: Optional[Dict[str, str]],
+        expected_response: dict[str, str] | None,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
     ):

@@ -24,7 +24,7 @@ class ApiTestService:
     def __init__(self, async_client: AsyncClient):
         self.client: AsyncClient = async_client
 
-    async def list(self, entity: str, status_code: int = 200, **ids):
+    async def get_list(self, entity: str, status_code: int = 200, **ids):
         """Call API for test a list of entities."""
         url = self.urls[entity][0].format(**ids)
         response = await self.client.get(url=url)
@@ -37,7 +37,7 @@ class ApiTestService:
                     assert field in resp_obj
             return resp_json
         elif response.status_code == 404:
-            assert response.json() == {'detail': f"{entity} not found"}
+            assert response.json() == {'detail': f'{entity} not found'}
         else:
             return response
 
@@ -53,7 +53,7 @@ class ApiTestService:
                 assert resp_json[field] == payload[field]
             return resp_json
         elif response.status_code == 404:
-            assert response.json() == {'detail': f"{entity} not found"}
+            assert response.json() == {'detail': f'{entity} not found'}
         else:
             return response
 
@@ -69,7 +69,7 @@ class ApiTestService:
                 assert field in resp_json
             return resp_json
         elif response.status_code == 404:
-            assert response.json() == {'detail': f"{entity} not found"}
+            assert response.json() == {'detail': f'{entity} not found'}
         else:
             return response
 
@@ -87,7 +87,7 @@ class ApiTestService:
                 assert field in resp_json
             return resp_json
         elif response.status_code == 404:
-            assert response.json() == {'detail': f"{entity} not found"}
+            assert response.json() == {'detail': f'{entity} not found'}
         else:
             return response
 
@@ -97,5 +97,5 @@ class ApiTestService:
         response = await self.client.delete(url=url)
         assert response.status_code == status_code
         if response.status_code == 404:
-            assert response.json() == {'detail': f"{entity} not found"}
+            assert response.json() == {'detail': f'{entity} not found'}
         return response

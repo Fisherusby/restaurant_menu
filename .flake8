@@ -5,15 +5,9 @@ max-methods = 10
 max-imports = 20
 # max-jones-score not working
 max-jones-score = 20
-exclude = .git, __pycache__, .venv, .env, migrations, venv, tools, alembic
-
-require-plugins = flake8-bugbear, flake8-simplify, flake8-builtins, pep8-naming, flake8-import-order
+exclude = .git, __pycache__, .venv, .env, migrations, venv, alembic
 
 application_import_names = core, tests
-
-extend-ignore =
-    I201,
-    B008
 
 per-file-ignores =
   */__init__.py: F401

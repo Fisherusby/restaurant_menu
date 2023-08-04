@@ -1,4 +1,3 @@
-from typing import Dict, List, Optional
 from uuid import UUID
 
 import pytest
@@ -7,8 +6,7 @@ from sqlalchemy import select
 
 from core import models
 from tests.base import BaseTestCase
-from tests.utils.crud import CRUDDataBase
-from tests.utils.uuid_tool import uuid_or_none
+from tests.utils import CRUDDataBase, uuid_or_none
 
 
 class TestSubmenus(BaseTestCase):
@@ -28,10 +26,10 @@ class TestSubmenus(BaseTestCase):
             pytest.param('70eb2363-c1de-4daa-b7cd-6b98db17e841', 200, None, id='Menu B'),
             pytest.param('aafe18cc-7986-4f72-9e37-adafa0f1f5b3', 200, None, id='Menu C'),
             pytest.param(
-                'ffffffff-ffff-ffff-ffff-ffffffffffff', 404, {"detail": "menu not found"}, id='Non-exist menu'
+                'ffffffff-ffff-ffff-ffff-ffffffffffff', 404, {'detail': 'menu not found'}, id='Non-exist menu'
             ),
             pytest.param('ffffffff', 422, None, id='Bad menu id'),
-            pytest.param('', 404, {"detail": "Not Found"}, id='Empty menu id'),
+            pytest.param('', 404, {'detail': 'Not Found'}, id='Empty menu id'),
         ),
     )
     @pytest.mark.asyncio
@@ -39,7 +37,7 @@ class TestSubmenus(BaseTestCase):
         self,
         menu_id: str,
         expected_status_code: int,
-        expected_response: Optional[Dict[str, str]],
+        expected_response: dict[str, str] | None,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
     ):
@@ -51,10 +49,10 @@ class TestSubmenus(BaseTestCase):
         if expected_response is not None:
             assert response.json() == expected_response
 
-        menu_uuid: Optional[UUID] = uuid_or_none(menu_id)
+        menu_uuid: UUID | None = uuid_or_none(menu_id)
 
         menu_obj: models.MenuDBModel = await async_crud_with_data.get_by_id(models.MenuDBModel, menu_uuid)
-        submenus_objects: List[models.SubmenuDBModel] = await async_crud_with_data.get_by_field(
+        submenus_objects: list[models.SubmenuDBModel] = await async_crud_with_data.get_by_field(
             models.SubmenuDBModel, field='menu_id', value=menu_uuid, only_one=False
         )
 
@@ -63,8 +61,8 @@ class TestSubmenus(BaseTestCase):
             assert len(submenus_objects) == 0
             return
 
-        resp_json: Dict[str, str] = response.json()
-        mapping_obj: Dict[str, models.SubmenuDBModel] = {str(obj.id): obj for obj in submenus_objects}
+        resp_json: list[dict[str, str]] = response.json()
+        mapping_obj: dict[str, models.SubmenuDBModel] = {str(obj.id): obj for obj in submenus_objects}
 
         assert menu_obj is not None
         assert len(resp_json) == len(submenus_objects)
@@ -75,39 +73,39 @@ class TestSubmenus(BaseTestCase):
             assert resp_obj['description'] == mapping_obj[resp_obj['id']].description
 
     @pytest.mark.parametrize(
-        "menu_id,created_data,expected_status_code,expected_response",
+        'menu_id,created_data,expected_status_code,expected_response',
         (
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
-                {'title': "Submenu created", "description": "Description submenu created"},
+                {'title': 'Submenu created', 'description': 'Description submenu created'},
                 201,
                 None,
                 id='All field',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
-                {'title': "Submenu created", "description": ""},
+                {'title': 'Submenu created', 'description': ''},
                 201,
                 None,
                 id='Empty description',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
-                {'title': "", "description": "Description submenu created"},
+                {'title': '', 'description': 'Description submenu created'},
                 201,
                 None,
                 id='Empty title',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
-                {"description": "Description submenu created"},
+                {'description': 'Description submenu created'},
                 422,
                 None,
                 id='Without title field',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
-                {'title': "Submenu created"},
+                {'title': 'Submenu created'},
                 422,
                 None,
                 id='Without description field',
@@ -116,23 +114,23 @@ class TestSubmenus(BaseTestCase):
             pytest.param('9ea7362e-bab3-4bfc-bab7-71cf9e06f58b', None, 422, None, id='Without payload data'),
             pytest.param(
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
-                {'title': "Submenu created", "description": "Description submenu created"},
+                {'title': 'Submenu created', 'description': 'Description submenu created'},
                 404,
-                {"detail": "menu not found"},
+                {'detail': 'menu not found'},
                 id='Non-exist menu_id',
             ),
             pytest.param(
                 'ffffffff',
-                {'title': "Submenu created", "description": "Description submenu created"},
+                {'title': 'Submenu created', 'description': 'Description submenu created'},
                 422,
                 None,
                 id='Bad menu_id',
             ),
             pytest.param(
                 '',
-                {'title': "Submenu created", "description": "Description submenu created"},
+                {'title': 'Submenu created', 'description': 'Description submenu created'},
                 404,
-                {"detail": "Not Found"},
+                {'detail': 'Not Found'},
                 id='Empty menu_id',
             ),
         ),
@@ -141,15 +139,15 @@ class TestSubmenus(BaseTestCase):
     async def test_create_submenu(
         self,
         menu_id: str,
-        created_data: Dict[str, str],
+        created_data: dict[str, str],
         expected_status_code: int,
-        expected_response: Optional[Dict[str, str]],
+        expected_response: dict[str, str] | None,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing create submenu."""
         before_obj_count: int = await async_crud_with_data.get_count(models.SubmenuDBModel)
-        response: Response = await async_client.post(url=f"/menus/{menu_id}/submenus", json=created_data)
+        response: Response = await async_client.post(url=f'/menus/{menu_id}/submenus', json=created_data)
         after_obj_count: int = await async_crud_with_data.get_count(models.SubmenuDBModel)
         assert response.status_code == expected_status_code
 
@@ -162,7 +160,7 @@ class TestSubmenus(BaseTestCase):
 
         assert before_obj_count + 1 == after_obj_count
 
-        resp_json: Dict[str, str] = response.json()
+        resp_json: dict[str, str] = response.json()
         assert 'id' in resp_json
 
         self.assert_payload_in_response(response, **created_data, menu_id=menu_id)
@@ -173,67 +171,67 @@ class TestSubmenus(BaseTestCase):
         (
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
-                "f98d48cb-4383-411c-bc71-ac653ce42e09",
+                'f98d48cb-4383-411c-bc71-ac653ce42e09',
                 200,
                 {
-                    "id": "f98d48cb-4383-411c-bc71-ac653ce42e09",
-                    "title": "Submenu AA",
-                    "description": "Description submenu AA",
-                    "menu_id": "9ea7362e-bab3-4bfc-bab7-71cf9e06f58b",
-                    "dishes_count": 3,
+                    'id': 'f98d48cb-4383-411c-bc71-ac653ce42e09',
+                    'title': 'Submenu AA',
+                    'description': 'Description submenu AA',
+                    'menu_id': '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
+                    'dishes_count': 3,
                 },
-                id="Submenu AA",
+                id='Submenu AA',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
-                "c0861bf3-311d-4db7-8677-d7ee5052adc9",
+                'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 200,
                 {
-                    "id": "c0861bf3-311d-4db7-8677-d7ee5052adc9",
-                    "title": "Submenu AB",
-                    "description": "Description submenu AB",
-                    "menu_id": "9ea7362e-bab3-4bfc-bab7-71cf9e06f58b",
-                    "dishes_count": 2,
+                    'id': 'c0861bf3-311d-4db7-8677-d7ee5052adc9',
+                    'title': 'Submenu AB',
+                    'description': 'Description submenu AB',
+                    'menu_id': '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
+                    'dishes_count': 2,
                 },
-                id="Submenu AB",
+                id='Submenu AB',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
-                "e2564502-0848-42d7-84c1-28bfc84e5ee9",
+                'e2564502-0848-42d7-84c1-28bfc84e5ee9',
                 200,
                 {
-                    "id": "e2564502-0848-42d7-84c1-28bfc84e5ee9",
-                    "title": "Submenu BA",
-                    "description": "Description submenu BA",
-                    "menu_id": "70eb2363-c1de-4daa-b7cd-6b98db17e841",
-                    "dishes_count": 0,
+                    'id': 'e2564502-0848-42d7-84c1-28bfc84e5ee9',
+                    'title': 'Submenu BA',
+                    'description': 'Description submenu BA',
+                    'menu_id': '70eb2363-c1de-4daa-b7cd-6b98db17e841',
+                    'dishes_count': 0,
                 },
-                id="Submenu BA",
+                id='Submenu BA',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
-                "f98d48cb-4383-411c-bc71-ac653ce42e09",
+                'f98d48cb-4383-411c-bc71-ac653ce42e09',
                 404,
-                {"detail": "submenu not found"},
-                id="Submenu not in menu",
+                {'detail': 'submenu not found'},
+                id='Submenu not in menu',
             ),
             pytest.param(
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
-                "c0861bf3-311d-4db7-8677-d7ee5052adc9",
+                'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 404,
-                {"detail": "submenu not found"},
-                id="Non-exist menu id",
+                {'detail': 'submenu not found'},
+                id='Non-exist menu id',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
-                "ffffffff-ffff-ffff-ffff-ffffffffffff",
+                'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 404,
-                {"detail": "submenu not found"},
-                id="Non-exist submenu id",
+                {'detail': 'submenu not found'},
+                id='Non-exist submenu id',
             ),
-            pytest.param('ffffffff-ffff', "e2564502-0848-42d7-84c1-28bfc84e5ee9", 422, None, id="Bad menu id"),
-            pytest.param('70eb2363-c1de-4daa-b7cd-6b98db17e841', "ffffffff-ffff", 422, None, id="Bad submenu id"),
-            pytest.param("", "e2564502-0848-42d7-84c1-28bfc84e5ee9", 404, {"detail": "Not Found"}, id="Empty menu id"),
+            pytest.param('ffffffff-ffff', 'e2564502-0848-42d7-84c1-28bfc84e5ee9', 422, None, id='Bad menu id'),
+            pytest.param('70eb2363-c1de-4daa-b7cd-6b98db17e841', 'ffffffff-ffff', 422, None, id='Bad submenu id'),
+            pytest.param('', 'e2564502-0848-42d7-84c1-28bfc84e5ee9', 404, {'detail': 'Not Found'}, id='Empty menu id'),
         ),
     )
     @pytest.mark.asyncio
@@ -242,12 +240,12 @@ class TestSubmenus(BaseTestCase):
         menu_id: str,
         submenu_id: str,
         expected_status_code: int,
-        expected_response: Optional[Dict[str, str]],
+        expected_response: dict[str, str] | None,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing get a submenu details."""
-        response: Response = await async_client.get(url=f"/menus/{menu_id}/submenus/{submenu_id}")
+        response: Response = await async_client.get(url=f'/menus/{menu_id}/submenus/{submenu_id}')
         assert response.status_code == expected_status_code
 
         db_obj: models.SubmenuDBModel = await async_crud_with_data.get_by_mul_field(
@@ -276,128 +274,128 @@ class TestSubmenus(BaseTestCase):
         (
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
-                "f98d48cb-4383-411c-bc71-ac653ce42e09",
+                'f98d48cb-4383-411c-bc71-ac653ce42e09',
                 {
-                    "title": "Submenu AA updated",
-                    "description": "Description submenu AA updated",
+                    'title': 'Submenu AA updated',
+                    'description': 'Description submenu AA updated',
                 },
                 200,
                 {
-                    "id": "f98d48cb-4383-411c-bc71-ac653ce42e09",
-                    "title": "Submenu AA updated",
-                    "description": "Description submenu AA updated",
-                    "menu_id": "9ea7362e-bab3-4bfc-bab7-71cf9e06f58b",
+                    'id': 'f98d48cb-4383-411c-bc71-ac653ce42e09',
+                    'title': 'Submenu AA updated',
+                    'description': 'Description submenu AA updated',
+                    'menu_id': '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
                 },
-                id="Title and description",
+                id='Title and description',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
-                "e2564502-0848-42d7-84c1-28bfc84e5ee9",
+                'e2564502-0848-42d7-84c1-28bfc84e5ee9',
                 {
-                    "description": "Description submenu BA updated",
+                    'description': 'Description submenu BA updated',
                 },
                 200,
                 {
-                    "id": "e2564502-0848-42d7-84c1-28bfc84e5ee9",
-                    "title": "Submenu BA",
-                    "description": "Description submenu BA updated",
-                    "menu_id": "70eb2363-c1de-4daa-b7cd-6b98db17e841",
+                    'id': 'e2564502-0848-42d7-84c1-28bfc84e5ee9',
+                    'title': 'Submenu BA',
+                    'description': 'Description submenu BA updated',
+                    'menu_id': '70eb2363-c1de-4daa-b7cd-6b98db17e841',
                 },
-                id="Only description",
+                id='Only description',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
-                "e2564502-0848-42d7-84c1-28bfc84e5ee9",
+                'e2564502-0848-42d7-84c1-28bfc84e5ee9',
                 {
-                    "title": "Submenu BA updated",
+                    'title': 'Submenu BA updated',
                 },
                 200,
                 {
-                    "id": "e2564502-0848-42d7-84c1-28bfc84e5ee9",
-                    "title": "Submenu BA updated",
-                    "description": "Description submenu BA",
-                    "menu_id": "70eb2363-c1de-4daa-b7cd-6b98db17e841",
+                    'id': 'e2564502-0848-42d7-84c1-28bfc84e5ee9',
+                    'title': 'Submenu BA updated',
+                    'description': 'Description submenu BA',
+                    'menu_id': '70eb2363-c1de-4daa-b7cd-6b98db17e841',
                 },
-                id="Only title",
+                id='Only title',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
-                "e2564502-0848-42d7-84c1-28bfc84e5ee9",
+                'e2564502-0848-42d7-84c1-28bfc84e5ee9',
                 {},
                 200,
                 {
-                    "id": "e2564502-0848-42d7-84c1-28bfc84e5ee9",
-                    "title": "Submenu BA",
-                    "description": "Description submenu BA",
-                    "menu_id": "70eb2363-c1de-4daa-b7cd-6b98db17e841",
+                    'id': 'e2564502-0848-42d7-84c1-28bfc84e5ee9',
+                    'title': 'Submenu BA',
+                    'description': 'Description submenu BA',
+                    'menu_id': '70eb2363-c1de-4daa-b7cd-6b98db17e841',
                 },
-                id="Empty pyload data",
+                id='Empty pyload data',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
-                "f98d48cb-4383-411c-bc71-ac653ce42e09",
+                'f98d48cb-4383-411c-bc71-ac653ce42e09',
                 {
-                    "title": "Submenu CC updated",
-                    "description": "Description submenu CC updated",
+                    'title': 'Submenu CC updated',
+                    'description': 'Description submenu CC updated',
                 },
                 404,
-                {"detail": "submenu not found"},
-                id="Submenu not in menu",
+                {'detail': 'submenu not found'},
+                id='Submenu not in menu',
             ),
             pytest.param(
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
-                "c0861bf3-311d-4db7-8677-d7ee5052adc9",
+                'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 {
-                    "title": "Submenu CC updated",
-                    "description": "Description submenu CC updated",
+                    'title': 'Submenu CC updated',
+                    'description': 'Description submenu CC updated',
                 },
                 404,
-                {"detail": "submenu not found"},
-                id="Non-exist menu id",
+                {'detail': 'submenu not found'},
+                id='Non-exist menu id',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
-                "ffffffff-ffff-ffff-ffff-ffffffffffff",
+                'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 {
-                    "title": "Submenu CC updated",
-                    "description": "Description submenu CC updated",
+                    'title': 'Submenu CC updated',
+                    'description': 'Description submenu CC updated',
                 },
                 404,
-                {"detail": "submenu not found"},
-                id="Non-exist submenu id",
+                {'detail': 'submenu not found'},
+                id='Non-exist submenu id',
             ),
             pytest.param(
                 'ffffffff-ffff',
-                "e2564502-0848-42d7-84c1-28bfc84e5ee9",
+                'e2564502-0848-42d7-84c1-28bfc84e5ee9',
                 {
-                    "title": "Submenu CC updated",
-                    "description": "Description submenu CC updated",
+                    'title': 'Submenu CC updated',
+                    'description': 'Description submenu CC updated',
                 },
                 422,
                 None,
-                id="Bad menu id",
+                id='Bad menu id',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
-                "ffffffff-ffff",
+                'ffffffff-ffff',
                 {
-                    "title": "Submenu CC updated",
-                    "description": "Description submenu CC updated",
+                    'title': 'Submenu CC updated',
+                    'description': 'Description submenu CC updated',
                 },
                 422,
                 None,
-                id="Bad submenu id",
+                id='Bad submenu id',
             ),
             pytest.param(
-                "",
-                "e2564502-0848-42d7-84c1-28bfc84e5ee9",
+                '',
+                'e2564502-0848-42d7-84c1-28bfc84e5ee9',
                 {
-                    "title": "Submenu CC updated",
-                    "description": "Description submenu CC updated",
+                    'title': 'Submenu CC updated',
+                    'description': 'Description submenu CC updated',
                 },
                 404,
-                {"detail": "Not Found"},
-                id="Empty menu id",
+                {'detail': 'Not Found'},
+                id='Empty menu id',
             ),
         ),
     )
@@ -406,14 +404,14 @@ class TestSubmenus(BaseTestCase):
         self,
         menu_id: str,
         submenu_id: str,
-        updated_data: Dict[str, str],
+        updated_data: dict[str, str],
         expected_status_code: int,
-        expected_response: Optional[Dict[str, str]],
+        expected_response: dict[str, str] | None,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing update submenu's parameters."""
-        response: Response = await async_client.patch(url=f"/menus/{menu_id}/submenus/{submenu_id}", json=updated_data)
+        response: Response = await async_client.patch(url=f'/menus/{menu_id}/submenus/{submenu_id}', json=updated_data)
 
         assert response.status_code == expected_status_code
 
@@ -431,49 +429,49 @@ class TestSubmenus(BaseTestCase):
         (
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
-                "f98d48cb-4383-411c-bc71-ac653ce42e09",
+                'f98d48cb-4383-411c-bc71-ac653ce42e09',
                 200,
                 None,
                 id='Submenu AA',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
-                "c0861bf3-311d-4db7-8677-d7ee5052adc9",
+                'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 200,
                 None,
                 id='Submenu AB',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
-                "e2564502-0848-42d7-84c1-28bfc84e5ee9",
+                'e2564502-0848-42d7-84c1-28bfc84e5ee9',
                 200,
                 None,
                 id='Submenu BA',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
-                "c0861bf3-311d-4db7-8677-d7ee5052adc9",
+                'c0861bf3-311d-4db7-8677-d7ee5052adc9',
                 404,
-                {"detail": "submenu not found"},
+                {'detail': 'submenu not found'},
                 id='Submenu not in menu',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 404,
-                {"detail": "submenu not found"},
+                {'detail': 'submenu not found'},
                 id='Non-exist submenu id',
             ),
             pytest.param(
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
-                "e2564502-0848-42d7-84c1-28bfc84e5ee9",
+                'e2564502-0848-42d7-84c1-28bfc84e5ee9',
                 404,
-                {"detail": "submenu not found"},
+                {'detail': 'submenu not found'},
                 id='Non-exist menu id',
             ),
-            pytest.param('ffffffff-ffff', "e2564502-0848-42d7-84c1-28bfc84e5ee9", 422, None, id='Empty menu id'),
-            pytest.param('70eb2363-c1de-4daa-b7cd-6b98db17e841', "ffffffff-ffff", 422, None, id='Bad submenu id'),
-            pytest.param("", "e2564502-0848-42d7-84c1-28bfc84e5ee9", 404, None, id='Empty menu id'),
+            pytest.param('ffffffff-ffff', 'e2564502-0848-42d7-84c1-28bfc84e5ee9', 422, None, id='Empty menu id'),
+            pytest.param('70eb2363-c1de-4daa-b7cd-6b98db17e841', 'ffffffff-ffff', 422, None, id='Bad submenu id'),
+            pytest.param('', 'e2564502-0848-42d7-84c1-28bfc84e5ee9', 404, None, id='Empty menu id'),
         ),
     )
     @pytest.mark.asyncio
@@ -482,14 +480,14 @@ class TestSubmenus(BaseTestCase):
         menu_id: str,
         submenu_id: str,
         expected_status_code: int,
-        expected_response: Optional[Dict[str, str]],
+        expected_response: dict[str, str] | None,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing delete submenu."""
         dishes_ids = await self.get_ids_dishes_by_submenu_id(async_crud_with_data, submenu_id)
         before_obj_count: int = await async_crud_with_data.get_count(models.SubmenuDBModel)
-        response: Response = await async_client.delete(url=f"/menus/{menu_id}/submenus/{submenu_id}")
+        response: Response = await async_client.delete(url=f'/menus/{menu_id}/submenus/{submenu_id}')
         after_obj_count: int = await async_crud_with_data.get_count(models.SubmenuDBModel)
 
         assert response.status_code == expected_status_code
@@ -503,7 +501,7 @@ class TestSubmenus(BaseTestCase):
 
         assert before_obj_count - 1 == after_obj_count
 
-        db_obj: Optional[models.SubmenuDBModel] = await async_crud_with_data.get_by_id(
+        db_obj: models.SubmenuDBModel | None = await async_crud_with_data.get_by_id(
             models.SubmenuDBModel, submenu_id
         )
         assert db_obj is None

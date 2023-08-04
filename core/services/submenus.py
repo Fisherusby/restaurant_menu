@@ -1,4 +1,3 @@
-from typing import List, Optional, Tuple
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -13,21 +12,21 @@ class SubmenusService(BaseObjectService):
         self, db: AsyncSession, menu_id: UUID, submenu_id: UUID
     ) -> schemas.ResponseSubmenuWithCountSchema:
         """Get submenu data by IDs of menu and submenu."""
-        submenu: Optional[Tuple[models.SubmenuDBModel, int]] = await self.repository.get_submenu_with_dish_count(
+        submenu: tuple[models.SubmenuDBModel, int] | None = await self.repository.get_submenu_with_dish_count(
             db=db, submenu_id=submenu_id, menu_id=menu_id
         )
 
         if submenu is None:
-            raise HTTPException(status_code=404, detail="submenu not found")
+            raise HTTPException(status_code=404, detail='submenu not found')
         return schemas.ResponseSubmenuWithCountSchema(
             **submenu[0].to_dict(), dishes_count=submenu[1] if submenu[1] is not None else 0
         )
 
-    async def get_submenu_list(self, db: AsyncSession, menu_id: UUID) -> List[schemas.ResponseSubmenuSchema]:
+    async def get_submenu_list(self, db: AsyncSession, menu_id: UUID) -> list[schemas.ResponseSubmenuSchema]:
         """Get a list of submenus in menu."""
         await services.menus_service.get_menu_by_id_or_404(db=db, menu_id=menu_id)
 
-        submenu_list: List[models.SubmenuDBModel] = await self.repository.get_by_fields(
+        submenu_list: list[models.SubmenuDBModel] = await self.repository.get_mul_by_fields(
             db=db, fields={'menu_id': menu_id}
         )
         return [schemas.ResponseSubmenuSchema(**obj.to_dict()) for obj in submenu_list]
@@ -36,17 +35,16 @@ class SubmenusService(BaseObjectService):
         self, db: AsyncSession, menu_id: UUID, submenu_id: UUID
     ) -> models.SubmenuDBModel:
         """Get submenu data by IDs of menu and submenu or rise http 404 if non-exist."""
-        submenu: Optional[models.SubmenuDBModel] = await self.repository.get_by_fields(
+        submenu: models.SubmenuDBModel | None = await self.repository.get_one_by_fields(
             db=db,
             fields={
                 'id': submenu_id,
                 'menu_id': menu_id,
             },
-            only_one=True,
         )
 
         if submenu is None:
-            raise HTTPException(status_code=404, detail="submenu not found")
+            raise HTTPException(status_code=404, detail='submenu not found')
 
         return submenu
 
@@ -78,4 +76,4 @@ class SubmenusService(BaseObjectService):
         await self.repository.delete_by_id(db=db, obj_id=sub_menu.id)
 
 
-submenus_service = SubmenusService(repositories.submenus)
+submenus_service: SubmenusService = SubmenusService(repositories.submenus)

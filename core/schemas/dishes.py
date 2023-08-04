@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import field_validator
@@ -34,9 +33,9 @@ class UpdateDishSchema(APISchema):
     Used for update dish.
     """
 
-    title: Optional[str] = None
-    description: Optional[str] = None
-    price: Optional[Decimal] = None
+    title: str | None = None
+    description: str | None = None
+    price: Decimal | None = None
 
     @field_validator('price')
     def price_validate(cls, v):

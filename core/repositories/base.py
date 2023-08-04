@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Generic, TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -8,16 +8,16 @@ from sqlalchemy.future import select
 
 from core.models.base import BaseDBModel
 
-ModelType = TypeVar("ModelType", bound=BaseDBModel)
-CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
-UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
+ModelType = TypeVar('ModelType', bound=BaseDBModel)
+CreateSchemaType = TypeVar('CreateSchemaType', bound=BaseModel)
+UpdateSchemaType = TypeVar('UpdateSchemaType', bound=BaseModel)
 
 
-class BaseRepository:
+class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     """CRUD object with default methods to Create, Read, Update, Delete (CRUD)."""
 
-    def __init__(self, model: Type[ModelType]):
-        self.model: Type[ModelType] = model
+    def __init__(self, model: type[ModelType]):
+        self.model: type[ModelType] = model
 
     async def get_all(
         self,
@@ -25,19 +25,39 @@ class BaseRepository:
         *,
         skip: int = 0,
         limit: int = 100,
-    ) -> List[ModelType]:
+    ) -> list[ModelType]:
         """Select all objects in database."""
         return (await db.execute(select(self.model).offset(skip).limit(limit))).scalars().all()
 
-    async def get_by_id(self, db: AsyncSession, *, obj_id: UUID) -> Optional[ModelType]:
+    async def get_by_id(self, db: AsyncSession, *, obj_id: UUID) -> ModelType | None:
         """Select an object in database by ID."""
         query = select(self.model).filter(self.model.id == obj_id)
-        res = (await db.execute(query)).scalar_one_or_none()
-        return res
+        return (await db.execute(query)).scalar_one_or_none()
 
-    async def get_by_fields(
+    def query_by_field(self, fields: dict) -> Any:
+        """Query for select objects in database by fields value."""
+        query = select(self.model)
+        for field_name, value in fields.items():
+            query = query.filter(getattr(self.model, field_name, None) == value)
+        return query
+
+    async def get_one_by_fields(
+        self, db: AsyncSession, *, fields: dict
+    ) -> ModelType | None:
+        """Select an object in database by fields value."""
+
+        return (await db.execute(self.query_by_field(fields))).scalar_one_or_none()
+
+    async def get_mul_by_fields(
+        self, db: AsyncSession, *, fields: dict, skip: int = 0, limit: int = 100
+    ) -> list[ModelType]:
+        """Select objects in database by fields value."""
+
+        return (await db.execute(self.query_by_field(fields).offset(skip).limit(limit))).scalars().all()
+
+    async def get_all_by_fields(
         self, db: AsyncSession, *, fields: dict, only_one: bool = False, skip: int = 0, limit: int = 100
-    ) -> Union[Optional[ModelType], List[ModelType]]:
+    ) -> ModelType | None | list[ModelType]:
         """Select objects in database by fields value.
 
         only_one set True if you want an objects or None as result.
@@ -52,11 +72,11 @@ class BaseRepository:
         else:
             return (await db.execute(query.offset(skip).limit(limit))).scalars().all()
 
-    async def create(self, db: AsyncSession, *, obj_in: Union[CreateSchemaType, dict]):
+    async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType | dict):
         """Create an object in database."""
-        obj_in: dict = dict(obj_in)
+        obj_dict: dict = dict(obj_in)
 
-        db_obj = self.model(**obj_in)
+        db_obj = self.model(**obj_dict)
         db.add(db_obj)
         await db.flush()
         await db.commit()
@@ -66,20 +86,17 @@ class BaseRepository:
 
     async def delete_by_id(self, db: AsyncSession, *, obj_id: UUID):
         """Delete an object in database by ID."""
-        obj = await self.get_by_id(db=db, obj_id=obj_id)
-
         query = delete(self.model).where(self.model.id == obj_id)
 
         await db.execute(query)
         await db.commit()
-        return obj
 
     async def update(
         self,
         db: AsyncSession,
         *,
         db_obj: ModelType,
-        obj_in: Union[UpdateSchemaType, Dict[str, Any]],
+        obj_in: UpdateSchemaType | dict[str, Any],
     ) -> ModelType:
         """Update an object in database.
 
@@ -104,3 +121,6 @@ class BaseRepository:
         await db.commit()
         await db.refresh(db_obj)
         return db_obj
+
+
+RepositoryType = TypeVar('RepositoryType', bound=BaseRepository)

@@ -18,16 +18,7 @@ pytest = "^7.4.0"
 pytest-asyncio = "^0.21.1"
 httpx = "^0.24.1"
 pytest-order = "^1.1.0"
-
-
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^3.3.3"
-flake8 = "^6.0.0"
-flake8-bugbear = "^23.7.10"
-flake8-builtins = "^2.1.0"
-flake8-import-order = "^0.18.2"
-flake8-simplify = "^0.20.0"
-pep8-naming = "^0.13.3"
+flake8 = "^6.1.0"
 
 
 [tool.black]
@@ -50,4 +41,3 @@ wrap-descriptions = 120
 [pycodestyle]
 max-line-length = 120
 exclude = ".tox,.git,*/migrations/*,*/static/CACHE/*,docs,node_modules,alembic"
-

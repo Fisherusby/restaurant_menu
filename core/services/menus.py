@@ -1,4 +1,3 @@
-from typing import List, Optional, Tuple
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -9,19 +8,19 @@ from core.services.base import BaseObjectService
 
 
 class MenusService(BaseObjectService):
-    async def get_menu_list(self, db: AsyncSession) -> List[schemas.ResponseMenuSchema]:
+    async def get_menu_list(self, db: AsyncSession) -> list[schemas.ResponseMenuSchema]:
         """Get a list of menus."""
-        menu_list: List[models.MenuDBModel] = await self.repository.get_all(db=db)
+        menu_list: list[models.MenuDBModel] = await self.repository.get_all(db=db)
         return [schemas.ResponseMenuSchema(**obj.to_dict()) for obj in menu_list]
 
     async def get_menu(self, db: AsyncSession, menu_id: UUID) -> schemas.ResponseMenuWithCountSchema:
         """Get menu data by ID."""
-        menu: Optional[Tuple[models.MenuDBModel, int, int]] = await self.repository.get_menu_with_counts(
+        menu: tuple[models.MenuDBModel, int, int] | None = await self.repository.get_menu_with_counts(
             db=db, menu_id=menu_id
         )
 
         if menu is None:
-            raise HTTPException(status_code=404, detail="menu not found")
+            raise HTTPException(status_code=404, detail='menu not found')
 
         return schemas.ResponseMenuWithCountSchema(
             **menu[0].to_dict(),
@@ -50,12 +49,12 @@ class MenusService(BaseObjectService):
 
     async def get_menu_by_id_or_404(self, db: AsyncSession, menu_id: UUID) -> models.MenuDBModel:
         """Get menu data by ID or rise http 404 if non-exist."""
-        menu: Optional[models.MenuDBModel] = await self.repository.get_by_id(db=db, obj_id=menu_id)
+        menu: models.MenuDBModel | None = await self.repository.get_by_id(db=db, obj_id=menu_id)
 
         if menu is None:
-            raise HTTPException(status_code=404, detail="menu not found")
+            raise HTTPException(status_code=404, detail='menu not found')
 
         return menu
 
 
-menus_service = MenusService(repositories.menus)
+menus_service: MenusService = MenusService(repositories.menus)

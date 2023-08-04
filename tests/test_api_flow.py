@@ -64,13 +64,13 @@ class TestApiFlow:
     @pytest.mark.order(8)
     @pytest.mark.asyncio
     async def test_list_submenus_menu_1(self, api, async_session_without_clear, buffer):
-        submenu_list = await api.list(api.SUBMENU, menu_id=buffer['menu_1']['id'])
+        submenu_list = await api.get_list(api.SUBMENU, menu_id=buffer['menu_1']['id'])
         assert submenu_list == []
 
     @pytest.mark.order(9)
     @pytest.mark.asyncio
     async def test_list_dishes_submenu_1(self, api, async_session_without_clear, buffer):
-        dish_list = await api.list(api.DISH, menu_id=buffer['menu_1']['id'], submenu_id=buffer['submenu_1']['id'])
+        dish_list = await api.get_list(api.DISH, menu_id=buffer['menu_1']['id'], submenu_id=buffer['submenu_1']['id'])
         assert dish_list == []
 
     @pytest.mark.order(10)
@@ -89,7 +89,7 @@ class TestApiFlow:
     @pytest.mark.order(12)
     @pytest.mark.asyncio
     async def test_list_menus(self, api, async_session_without_clear, buffer):
-        menu_list = await api.list(api.MENU)
+        menu_list = await api.get_list(api.MENU)
         assert menu_list == []
 
     @pytest.mark.order(99)

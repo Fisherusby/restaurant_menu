@@ -12,15 +12,14 @@ from core.db import async_engine
 from core.main import app
 from core.models.base import BaseDBModel
 from core.settings import settings
-from tests.utils.api import ApiTestService
-from tests.utils.crud import CRUDDataBase
+from tests.utils import ApiTestService, CRUDDataBase
 from tests.utils.init_data import INIT_DATA
 
 
 @pytest_asyncio.fixture
 async def async_client() -> AsyncClient:
     """Generator for test request client."""
-    async with AsyncClient(app=app, base_url=f"http://{settings.API_PREFIX}") as client:
+    async with AsyncClient(app=app, base_url=f'http://{settings.API_PREFIX}') as client:
         yield client
 
 
@@ -51,7 +50,7 @@ async def async_session_generator(clear_db: bool = True) -> AsyncSession:
     await async_engine.dispose()
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture(scope='function')
 async def async_session() -> AsyncSession:
     async with async_session_generator() as s:
         yield s
@@ -63,13 +62,13 @@ async def async_session_without_clear() -> AsyncSession:
         yield s
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture(scope='function')
 async def async_crud(async_session):
     """Generator crud fixture with non-data DB."""
     yield CRUDDataBase(async_session)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope='function')
 def generate_test_data():
     """Generate objects for init test DB with data."""
     menu_mapping = ('id', 'title', 'description')
@@ -87,7 +86,7 @@ def generate_test_data():
     return objs
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture(scope='function')
 async def async_crud_with_data(generate_test_data, async_session):
     """Generator crud fixture with initialized data in DB."""
     for obj in generate_test_data:

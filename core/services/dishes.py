@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -13,11 +12,11 @@ class DishesService(BaseObjectService):
 
     async def get_dish_list(
         self, db: AsyncSession, menu_id: UUID, submenu_id: UUID
-    ) -> List[schemas.ResponseDishSchema]:
+    ) -> list[schemas.ResponseDishSchema]:
         """Get a list of dishes in submenu by IDs of menu and submenu."""
         # Postman tests expect empty list in non-existent submenu...
         # await services.submenus_service.get_submenu_by_id_or_404(db=db, menu_id=menu_id, submenu_id=submenu_id)
-        dish_list: List[models.DishDBModel] = await self.repository.get_by_fields(
+        dish_list: list[models.DishDBModel] = await self.repository.get_mul_by_fields(
             db=db, fields={'submenu_id': submenu_id}
         )
         return [schemas.ResponseDishSchema(**obj.to_dict()) for obj in dish_list]
@@ -35,12 +34,12 @@ class DishesService(BaseObjectService):
         self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, dish_id: UUID
     ) -> models.DishDBModel:
         """Get dish data or rise http 404 by IDs of dish, menu and submenu."""
-        dish: models.DishDBModel = await self.repository.get_by_fields(
-            db=db, fields={'id': dish_id, 'submenu_id': submenu_id}, only_one=True
+        dish: models.DishDBModel | None = await self.repository.get_one_by_fields(
+            db=db, fields={'id': dish_id, 'submenu_id': submenu_id}
         )
 
         if dish is None:
-            raise HTTPException(status_code=404, detail="dish not found")
+            raise HTTPException(status_code=404, detail='dish not found')
 
         return dish
 

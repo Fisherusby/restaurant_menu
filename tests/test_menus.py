@@ -1,13 +1,10 @@
-from typing import Dict, Optional
-
 import pytest
 from httpx import AsyncClient, Response
 from sqlalchemy import select
 
 from core import models
 from tests.base import BaseTestCase
-from tests.utils.crud import CRUDDataBase
-from tests.utils.uuid_tool import uuid_or_none
+from tests.utils import CRUDDataBase, uuid_or_none
 
 
 class TestMenus(BaseTestCase):
@@ -63,7 +60,7 @@ class TestMenus(BaseTestCase):
     @pytest.mark.asyncio
     async def test_create_menu(
         self,
-        created_data: Dict[str, str],
+        created_data: dict[str, str],
         expected_status_code: int,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
@@ -94,36 +91,36 @@ class TestMenus(BaseTestCase):
                     'dishes_count': 5,
                 },
                 200,
-                id="Menu A",
+                id='Menu A',
             ),
             pytest.param(
                 '70eb2363-c1de-4daa-b7cd-6b98db17e841',
                 {
-                    "id": "70eb2363-c1de-4daa-b7cd-6b98db17e841",
-                    "title": "Menu B",
-                    "description": "Description menu B",
-                    "submenus_count": 1,
-                    "dishes_count": 0,
+                    'id': '70eb2363-c1de-4daa-b7cd-6b98db17e841',
+                    'title': 'Menu B',
+                    'description': 'Description menu B',
+                    'submenus_count': 1,
+                    'dishes_count': 0,
                 },
                 200,
-                id="Menu B",
+                id='Menu B',
             ),
             pytest.param(
                 'aafe18cc-7986-4f72-9e37-adafa0f1f5b3',
                 {
-                    "id": "aafe18cc-7986-4f72-9e37-adafa0f1f5b3",
-                    "title": "Menu C",
-                    "description": "Description menu C",
-                    "submenus_count": 0,
-                    "dishes_count": 0,
+                    'id': 'aafe18cc-7986-4f72-9e37-adafa0f1f5b3',
+                    'title': 'Menu C',
+                    'description': 'Description menu C',
+                    'submenus_count': 0,
+                    'dishes_count': 0,
                 },
                 200,
-                id="Menu C",
+                id='Menu C',
             ),
-            pytest.param('ffffffff', None, 422, id="Bad menu id"),
-            pytest.param(None, None, 422, id="Empty menu id"),
+            pytest.param('ffffffff', None, 422, id='Bad menu id'),
+            pytest.param(None, None, 422, id='Empty menu id'),
             pytest.param(
-                'ffffffff-ffff-ffff-ffff-ffffffffffff', {"detail": "menu not found"}, 404, id="Non-exist menu id"
+                'ffffffff-ffff-ffff-ffff-ffffffffffff', {'detail': 'menu not found'}, 404, id='Non-exist menu id'
             ),
         ),
     )
@@ -131,7 +128,7 @@ class TestMenus(BaseTestCase):
     async def test_get_menu_detail(
         self,
         menu_id: str,
-        expected_response: Dict[str, str],
+        expected_response: dict[str, str],
         expected_status_code: int,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
@@ -147,7 +144,7 @@ class TestMenus(BaseTestCase):
             return
 
         await self.assert_equal_response_db_object(response, async_crud_with_data)
-        rest_json: Dict[str, str] = response.json()
+        rest_json: dict[str, str] = response.json()
         submenus_ids, dishes_ids = await self.get_ids_submenus_dishes_by_menu_id(async_crud_with_data, menu_id)
 
         assert len(submenus_ids) == rest_json['submenus_count']
@@ -168,7 +165,7 @@ class TestMenus(BaseTestCase):
                     'description': 'Description menu A updated',
                 },
                 200,
-                id="Title and description",
+                id='Title and description',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -181,7 +178,7 @@ class TestMenus(BaseTestCase):
                     'description': 'Description menu A',
                 },
                 200,
-                id="Only title",
+                id='Only title',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -194,7 +191,7 @@ class TestMenus(BaseTestCase):
                     'description': 'Description menu A updated',
                 },
                 200,
-                id="Only description",
+                id='Only description',
             ),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
@@ -205,9 +202,9 @@ class TestMenus(BaseTestCase):
                     'description': 'Description menu A',
                 },
                 200,
-                id="Empty payload",
+                id='Empty payload',
             ),
-            pytest.param('9ea7362e-bab3-4bfc-bab7-71cf9e06f58b', None, None, 422, id="Without payload"),
+            pytest.param('9ea7362e-bab3-4bfc-bab7-71cf9e06f58b', None, None, 422, id='Without payload'),
             pytest.param(
                 '9ea7362e-bab3-4bfc-bab7-71cf9e06f58b',
                 {
@@ -220,7 +217,7 @@ class TestMenus(BaseTestCase):
                     'description': '',
                 },
                 200,
-                id="Empty title and description",
+                id='Empty title and description',
             ),
             pytest.param(
                 'ffffffff-ffff-ffff-ffff-ffffffffffff',
@@ -228,9 +225,9 @@ class TestMenus(BaseTestCase):
                     'title': 'Menu A updated',
                     'description': 'Description menu A updated',
                 },
-                {'detail': "menu not found"},
+                {'detail': 'menu not found'},
                 404,
-                id="Non-exist menu id",
+                id='Non-exist menu id',
             ),
             pytest.param(
                 None,
@@ -240,7 +237,7 @@ class TestMenus(BaseTestCase):
                 },
                 None,
                 422,
-                id="Empty menu id",
+                id='Empty menu id',
             ),
             pytest.param(
                 'ffffffff',
@@ -250,7 +247,7 @@ class TestMenus(BaseTestCase):
                 },
                 None,
                 422,
-                id="Bad menu id",
+                id='Bad menu id',
             ),
         ),
     )
@@ -258,14 +255,14 @@ class TestMenus(BaseTestCase):
     async def test_update_menu(
         self,
         menu_id: str,
-        updated_data: Dict[str, str],
-        expected_response: Optional[Dict[str, str]],
+        updated_data: dict[str, str],
+        expected_response: dict[str, str] | None,
         expected_status_code: int,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing update menu's parameters."""
-        response: Response = await async_client.patch(url=f"/menus/{menu_id}", json=updated_data)
+        response: Response = await async_client.patch(url=f'/menus/{menu_id}', json=updated_data)
 
         assert response.status_code == expected_status_code
 
@@ -279,13 +276,13 @@ class TestMenus(BaseTestCase):
         await self.assert_equal_response_db_object(response, async_crud_with_data)
 
     @pytest.mark.parametrize(
-        "menu_id,expected_status_code,expected_response",
+        'menu_id,expected_status_code,expected_response',
         (
             pytest.param('9ea7362e-bab3-4bfc-bab7-71cf9e06f58b', 200, None, id='Menu A'),
             pytest.param('70eb2363-c1de-4daa-b7cd-6b98db17e841', 200, None, id='Menu B'),
             pytest.param('aafe18cc-7986-4f72-9e37-adafa0f1f5b3', 200, None, id='Menu C'),
             pytest.param(
-                'ffffffff-ffff-ffff-ffff-ffffffffffff', 404, {'detail': "menu not found"}, id='Non exist menu id'
+                'ffffffff-ffff-ffff-ffff-ffffffffffff', 404, {'detail': 'menu not found'}, id='Non exist menu id'
             ),
             pytest.param('ffffffff', 422, None, id='Bad menu id'),
         ),
@@ -295,7 +292,7 @@ class TestMenus(BaseTestCase):
         self,
         menu_id: str,
         expected_status_code: int,
-        expected_response: Optional[Dict[str, str]],
+        expected_response: dict[str, str] | None,
         async_client: AsyncClient,
         async_crud_with_data: CRUDDataBase,
     ):
@@ -303,7 +300,7 @@ class TestMenus(BaseTestCase):
 
         submenus_ids, dishes_ids = await self.get_ids_submenus_dishes_by_menu_id(async_crud_with_data, menu_id)
         before_obj_count: int = await async_crud_with_data.get_count(models.MenuDBModel)
-        response: Response = await async_client.delete(url=f"/menus/{menu_id}")
+        response: Response = await async_client.delete(url=f'/menus/{menu_id}')
         after_obj_count: int = await async_crud_with_data.get_count(models.MenuDBModel)
         assert response.status_code == expected_status_code
 

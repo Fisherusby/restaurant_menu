@@ -4,9 +4,10 @@ Revision ID: 9865376956ed
 Revises:
 Create Date: 2023-07-23 12:39:50.822271
 """
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '9865376956ed'

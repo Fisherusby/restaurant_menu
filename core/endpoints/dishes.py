@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -10,13 +9,13 @@ from core.db import get_session
 router = APIRouter()
 
 
-@router.get('/{menu_id}/submenus/{submenu_id}/dishes', status_code=200, response_model=List[schemas.ResponseDishSchema])
+@router.get('/{menu_id}/submenus/{submenu_id}/dishes', status_code=200, response_model=list[schemas.ResponseDishSchema])
 async def get_dish_list(
     menu_id: UUID, submenu_id: UUID, db: AsyncSession = Depends(get_session)
-) -> List[schemas.ResponseDishSchema]:
+) -> list[schemas.ResponseDishSchema]:
     """Get submenu's dishes."""
 
-    dish_list: List[schemas.ResponseDishSchema] = await services.dishes_service.get_dish_list(
+    dish_list: list[schemas.ResponseDishSchema] = await services.dishes_service.get_dish_list(
         db=db, menu_id=menu_id, submenu_id=submenu_id
     )
     return dish_list

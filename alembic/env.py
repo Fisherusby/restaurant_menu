@@ -5,11 +5,11 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
+from core.models.base import BaseDBModel
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
-from core.models.base import BaseDBModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -35,13 +35,13 @@ target_metadata = BaseDBModel.metadata
 def get_url():
     print(
         os.getenv(
-            "SQLALCHEMY_SYNC_DATABASE_URL",
-            "postgresql://user:password@localhost:5432/db",
+            'SQLALCHEMY_SYNC_DATABASE_URL',
+            'postgresql://user:password@localhost:5432/db',
         )
     )
     return os.getenv(
-        "SQLALCHEMY_SYNC_DATABASE_URL",
-        "postgresql://user:password@localhost:5432/db",
+        'SQLALCHEMY_SYNC_DATABASE_URL',
+        'postgresql://user:password@localhost:5432/db',
     )
 
 
@@ -74,10 +74,10 @@ def run_migrations_online() -> None:
     In this scenario we need to create an Engine and associate a connection with the context.
     """
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = get_url()
+    configuration['sqlalchemy.url'] = get_url()
     connectable = engine_from_config(
         configuration,
-        prefix="sqlalchemy.",
+        prefix='sqlalchemy.',
         poolclass=pool.NullPool,
     )
 

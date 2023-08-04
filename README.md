@@ -27,7 +27,7 @@
 Обернуть программные компоненты в контейнеры. Контейнеры должны запускаться по одной команде “docker-compose up -d” или той которая описана вами в readme.md. <br>
 ✅ Реализовано в первой части
 
-Образы для Docker: <br> 
+Образы для Docker: <br>
 (API) python:3.10-slim <br>
 (DB) postgres:15.1-alpine <br>
 (✅ Необходимые образы использованы)
@@ -86,8 +86,7 @@ http://localhost:8000/swagger
 ```
 docker compose down
 ```
-or with clearing DB 
+or with clearing DB
 ```commandline
 docker compose down -v
 ```
-

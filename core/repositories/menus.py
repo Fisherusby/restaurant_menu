@@ -1,17 +1,16 @@
-from typing import Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core import models
+from core import models, schemas
 from core.repositories.base import BaseRepository
 
 
-class MenuRepository(BaseRepository):
+class MenuRepository(BaseRepository[models.MenuDBModel, schemas.MenuSchema, schemas.UpdateMenuSchema]):
     async def get_menu_with_counts(
         self, db: AsyncSession, menu_id: UUID
-    ) -> Optional[Tuple[models.MenuDBModel, int, int]]:
+    ) -> tuple[models.MenuDBModel, int, int] | None:
         """Get menu with counts of dishes and submenus in menu from database."""
 
         query = (
@@ -24,8 +23,7 @@ class MenuRepository(BaseRepository):
             .join(models.DishDBModel, models.SubmenuDBModel.id == models.DishDBModel.submenu_id, isouter=True)
             .group_by(self.model)
         )
-        result = (await db.execute(query)).first()
-        return result
+        return (await db.execute(query)).first()
 
 
-menus = MenuRepository(models.MenuDBModel)
+menus: MenuRepository = MenuRepository(models.MenuDBModel)

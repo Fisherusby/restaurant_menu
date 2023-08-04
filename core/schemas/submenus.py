@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID
 
 from core.schemas.base import APISchema, BaseIdSchema
@@ -29,8 +28,8 @@ class UpdateSubmenuSchema(APISchema):
     Used for update submenu's data.
     """
 
-    title: Optional[str] = None
-    description: Optional[str] = None
+    title: str | None = None
+    description: str | None = None
 
 
 class ResponseSubmenuSchema(SubmenuWithMenuIdSchema, BaseIdSchema):
