@@ -29,7 +29,6 @@ class TestSubmenus(BaseTestCase):
                 'ffffffff-ffff-ffff-ffff-ffffffffffff', 404, {'detail': 'menu not found'}, id='Non-exist menu'
             ),
             pytest.param('ffffffff', 422, None, id='Bad menu id'),
-            pytest.param('', 404, {'detail': 'Not Found'}, id='Empty menu id'),
         ),
     )
     @pytest.mark.asyncio
@@ -42,7 +41,8 @@ class TestSubmenus(BaseTestCase):
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing get a list of submenus."""
-        response: Response = await async_client.get(url=f'/menus/{menu_id}/submenus')
+        url: str = self.reverse('get_submenu_list', menu_id=menu_id)
+        response: Response = await async_client.get(url=url)
 
         assert response.status_code == expected_status_code
 
@@ -126,13 +126,6 @@ class TestSubmenus(BaseTestCase):
                 None,
                 id='Bad menu_id',
             ),
-            pytest.param(
-                '',
-                {'title': 'Submenu created', 'description': 'Description submenu created'},
-                404,
-                {'detail': 'Not Found'},
-                id='Empty menu_id',
-            ),
         ),
     )
     @pytest.mark.asyncio
@@ -147,7 +140,8 @@ class TestSubmenus(BaseTestCase):
     ):
         """Testing create submenu."""
         before_obj_count: int = await async_crud_with_data.get_count(models.SubmenuDBModel)
-        response: Response = await async_client.post(url=f'/menus/{menu_id}/submenus', json=created_data)
+        url: str = self.reverse('create_submenu', menu_id=menu_id)
+        response: Response = await async_client.post(url=url, json=created_data)
         after_obj_count: int = await async_crud_with_data.get_count(models.SubmenuDBModel)
         assert response.status_code == expected_status_code
 
@@ -231,7 +225,6 @@ class TestSubmenus(BaseTestCase):
             ),
             pytest.param('ffffffff-ffff', 'e2564502-0848-42d7-84c1-28bfc84e5ee9', 422, None, id='Bad menu id'),
             pytest.param('70eb2363-c1de-4daa-b7cd-6b98db17e841', 'ffffffff-ffff', 422, None, id='Bad submenu id'),
-            pytest.param('', 'e2564502-0848-42d7-84c1-28bfc84e5ee9', 404, {'detail': 'Not Found'}, id='Empty menu id'),
         ),
     )
     @pytest.mark.asyncio
@@ -245,7 +238,8 @@ class TestSubmenus(BaseTestCase):
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing get a submenu details."""
-        response: Response = await async_client.get(url=f'/menus/{menu_id}/submenus/{submenu_id}')
+        url: str = self.reverse('get_submenu', menu_id=menu_id, submenu_id=submenu_id)
+        response: Response = await async_client.get(url=url)
         assert response.status_code == expected_status_code
 
         db_obj: models.SubmenuDBModel = await async_crud_with_data.get_by_mul_field(
@@ -386,17 +380,6 @@ class TestSubmenus(BaseTestCase):
                 None,
                 id='Bad submenu id',
             ),
-            pytest.param(
-                '',
-                'e2564502-0848-42d7-84c1-28bfc84e5ee9',
-                {
-                    'title': 'Submenu CC updated',
-                    'description': 'Description submenu CC updated',
-                },
-                404,
-                {'detail': 'Not Found'},
-                id='Empty menu id',
-            ),
         ),
     )
     @pytest.mark.asyncio
@@ -411,7 +394,8 @@ class TestSubmenus(BaseTestCase):
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing update submenu's parameters."""
-        response: Response = await async_client.patch(url=f'/menus/{menu_id}/submenus/{submenu_id}', json=updated_data)
+        url: str = self.reverse('update_submenu', menu_id=menu_id, submenu_id=submenu_id)
+        response: Response = await async_client.patch(url=url, json=updated_data)
 
         assert response.status_code == expected_status_code
 
@@ -469,9 +453,8 @@ class TestSubmenus(BaseTestCase):
                 {'detail': 'submenu not found'},
                 id='Non-exist menu id',
             ),
-            pytest.param('ffffffff-ffff', 'e2564502-0848-42d7-84c1-28bfc84e5ee9', 422, None, id='Empty menu id'),
+            pytest.param('ffffffff-ffff', 'e2564502-0848-42d7-84c1-28bfc84e5ee9', 422, None, id='Bab menu id'),
             pytest.param('70eb2363-c1de-4daa-b7cd-6b98db17e841', 'ffffffff-ffff', 422, None, id='Bad submenu id'),
-            pytest.param('', 'e2564502-0848-42d7-84c1-28bfc84e5ee9', 404, None, id='Empty menu id'),
         ),
     )
     @pytest.mark.asyncio
@@ -487,7 +470,8 @@ class TestSubmenus(BaseTestCase):
         """Testing delete submenu."""
         dishes_ids = await self.get_ids_dishes_by_submenu_id(async_crud_with_data, submenu_id)
         before_obj_count: int = await async_crud_with_data.get_count(models.SubmenuDBModel)
-        response: Response = await async_client.delete(url=f'/menus/{menu_id}/submenus/{submenu_id}')
+        url: str = self.reverse('delete_submenu', menu_id=menu_id, submenu_id=submenu_id)
+        response: Response = await async_client.delete(url=url)
         after_obj_count: int = await async_crud_with_data.get_count(models.SubmenuDBModel)
 
         assert response.status_code == expected_status_code

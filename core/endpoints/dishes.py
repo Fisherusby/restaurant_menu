@@ -9,7 +9,12 @@ from core.db import get_session
 router = APIRouter()
 
 
-@router.get('/{menu_id}/submenus/{submenu_id}/dishes', status_code=200, response_model=list[schemas.ResponseDishSchema])
+@router.get(
+    '/{menu_id}/submenus/{submenu_id}/dishes',
+    status_code=200,
+    response_model=list[schemas.ResponseDishSchema],
+    name='get_dish_list'
+)
 async def get_dish_list(
     menu_id: UUID, submenu_id: UUID, db: AsyncSession = Depends(get_session)
 ) -> list[schemas.ResponseDishSchema]:
@@ -21,7 +26,12 @@ async def get_dish_list(
     return dish_list
 
 
-@router.post('/{menu_id}/submenus/{submenu_id}/dishes', status_code=201, response_model=schemas.ResponseDishSchema)
+@router.post(
+    '/{menu_id}/submenus/{submenu_id}/dishes',
+    status_code=201,
+    response_model=schemas.ResponseDishSchema,
+    name='create_dish'
+)
 async def create_dish(
     menu_id: UUID, submenu_id: UUID, data: schemas.DishSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseDishSchema:
@@ -34,7 +44,10 @@ async def create_dish(
 
 
 @router.get(
-    '/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', status_code=200, response_model=schemas.ResponseDishSchema
+    '/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
+    status_code=200,
+    response_model=schemas.ResponseDishSchema,
+    name='get_dish'
 )
 async def detail_dish(
     menu_id: UUID, submenu_id: UUID, dish_id: UUID, db: AsyncSession = Depends(get_session)
@@ -48,7 +61,10 @@ async def detail_dish(
 
 
 @router.patch(
-    '/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', status_code=200, response_model=schemas.ResponseDishSchema
+    '/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
+    status_code=200,
+    response_model=schemas.ResponseDishSchema,
+    name='update_dish'
 )
 async def update_dish(
     menu_id: UUID,
@@ -68,7 +84,7 @@ async def update_dish(
     return dish
 
 
-@router.delete('/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', status_code=200)
+@router.delete('/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', status_code=200, name='delete_dish')
 async def delete_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID, db: AsyncSession = Depends(get_session)) -> None:
     """Delete dish."""
 

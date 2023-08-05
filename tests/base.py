@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from httpx import Response
 
+from core.endpoints.api import router
 from tests.utils import CRUDDataBase, ModelType
 
 
@@ -17,6 +18,10 @@ class BaseTestCase(ABC):
     def fields_for_assert(self):
         """List of fields  from DB model existing in response."""
         pass
+
+    @staticmethod
+    def reverse(name: str, **kwargs) -> str:
+        return router.url_path_for(name, **kwargs)
 
     async def assert_equal_response_db_object(
         self, response: Response, crud: CRUDDataBase, db_obj: ModelType | None = None

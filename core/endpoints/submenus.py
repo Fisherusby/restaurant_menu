@@ -9,7 +9,12 @@ from core.db import get_session
 router = APIRouter()
 
 
-@router.get('/{menu_id}/submenus', status_code=200, response_model=list[schemas.ResponseSubmenuSchema])
+@router.get(
+    '/{menu_id}/submenus',
+    status_code=200,
+    response_model=list[schemas.ResponseSubmenuSchema],
+    name='get_submenu_list'
+)
 async def get_submenu_list(
     menu_id: UUID, db: AsyncSession = Depends(get_session)
 ) -> list[schemas.ResponseSubmenuSchema]:
@@ -21,8 +26,10 @@ async def get_submenu_list(
     return submenu_list
 
 
-@router.post('/{menu_id}/submenus', status_code=201, response_model=schemas.ResponseSubmenuSchema)
-async def create_submenus(
+@router.post(
+    '/{menu_id}/submenus', status_code=201, response_model=schemas.ResponseSubmenuSchema, name='create_submenu'
+)
+async def create_submenu(
     menu_id: UUID, data: schemas.SubmenuSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseSubmenuSchema:
     """Create submenu for menu."""
@@ -33,7 +40,12 @@ async def create_submenus(
     return submenu
 
 
-@router.get('/{menu_id}/submenus/{submenu_id}', status_code=200, response_model=schemas.ResponseSubmenuWithCountSchema)
+@router.get(
+    '/{menu_id}/submenus/{submenu_id}',
+    status_code=200,
+    response_model=schemas.ResponseSubmenuWithCountSchema,
+    name='get_submenu'
+)
 async def detail_submenu(
     menu_id: UUID, submenu_id: UUID, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseSubmenuWithCountSchema:
@@ -45,7 +57,12 @@ async def detail_submenu(
     return submenu
 
 
-@router.patch('/{menu_id}/submenus/{submenu_id}', status_code=200, response_model=schemas.ResponseSubmenuSchema)
+@router.patch(
+    '/{menu_id}/submenus/{submenu_id}',
+    status_code=200,
+    response_model=schemas.ResponseSubmenuSchema,
+    name='update_submenu'
+)
 async def update_submenu(
     menu_id: UUID, submenu_id: UUID, data: schemas.UpdateSubmenuSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseSubmenuSchema:
@@ -60,7 +77,7 @@ async def update_submenu(
     return submenu
 
 
-@router.delete('/{menu_id}/submenus/{submenu_id}', status_code=200)
+@router.delete('/{menu_id}/submenus/{submenu_id}', status_code=200, name='delete_submenu')
 async def delete_submenu(menu_id: UUID, submenu_id: UUID, db: AsyncSession = Depends(get_session)) -> None:
     """Delete submenu."""
 

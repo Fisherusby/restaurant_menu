@@ -70,7 +70,8 @@ class TestDishes(BaseTestCase):
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing get a list of submenu's dishes."""
-        response: Response = await async_client.get(url=f'/menus/{menu_id}/submenus/{submenu_id}/dishes')
+        url: str = self.reverse('get_dish_list', menu_id=menu_id, submenu_id=submenu_id)
+        response: Response = await async_client.get(url=url)
 
         assert response.status_code == expected_status_code
 
@@ -233,9 +234,8 @@ class TestDishes(BaseTestCase):
     ):
         """Testing create dish."""
         before_count: int = await async_crud_with_data.get_count(models.DishDBModel)
-        response: Response = await async_client.post(
-            url=f'/menus/{menu_id}/submenus/{submenu_id}/dishes', json=created_data
-        )
+        url: str = self.reverse('create_dish', menu_id=menu_id, submenu_id=submenu_id)
+        response: Response = await async_client.post(url=url, json=created_data)
         after_count: int = await async_crud_with_data.get_count(models.DishDBModel)
         assert response.status_code == expected_status_code
 
@@ -441,7 +441,8 @@ class TestDishes(BaseTestCase):
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing get dish's detail."""
-        response: Response = await async_client.get(url=f'/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}')
+        url: str = self.reverse('get_dish', menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
+        response: Response = await async_client.get(url=url)
 
         assert response.status_code == expected_status_code
 
@@ -700,9 +701,8 @@ class TestDishes(BaseTestCase):
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing update dish's parameters."""
-        response: Response = await async_client.patch(
-            url=f'/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', json=updated_data
-        )
+        url: str = self.reverse('update_dish', menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
+        response: Response = await async_client.patch(url=url, json=updated_data)
 
         assert response.status_code == expected_status_code
 
@@ -877,7 +877,8 @@ class TestDishes(BaseTestCase):
     ):
         """Testing delete dish."""
         before_count: int = await async_crud_with_data.get_count(models.DishDBModel)
-        response: Response = await async_client.delete(url=f'/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}')
+        url: str = self.reverse('delete_dish', menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
+        response: Response = await async_client.delete(url=url)
         after_count: int = await async_crud_with_data.get_count(models.DishDBModel)
 
         assert response.status_code == expected_status_code

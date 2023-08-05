@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+from typing import AsyncGenerator, Generator
 
 import pytest
 import pytest_asyncio
@@ -25,7 +26,7 @@ def event_loop(request):
 
 
 @pytest_asyncio.fixture
-async def async_client() -> AsyncClient:
+async def async_client() -> AsyncGenerator[AsyncClient, None]:
     """Generator for test request client."""
     async with AsyncClient(app=app, base_url=f'http://{settings.API_PREFIX}') as client:
         yield client
@@ -37,7 +38,7 @@ def get_table_names(conn):
 
 
 @contextlib.asynccontextmanager
-async def async_session_generator(clear_db: bool = True) -> AsyncSession:
+async def async_session_generator(clear_db: bool = True) -> AsyncGenerator[AsyncSession, None]:
     """Generator for database sessions with drop/create objects in the database.
 
     Created before using and dropping after using.
@@ -48,42 +49,42 @@ async def async_session_generator(clear_db: bool = True) -> AsyncSession:
         async with async_engine.begin() as conn:
             exist_tables = await conn.run_sync(get_table_names)
             if not {'menus', 'submenus', 'dishes'}.issubset(exist_tables):
-                await conn.run_sync(BaseDBModel.metadata.create_all)
+                await conn.run_sync(BaseDBModel.metadata.create_all)  # type: ignore[attr-defined]
         yield s
 
     if clear_db:
         async with async_engine.begin() as conn:
-            await conn.run_sync(BaseDBModel.metadata.drop_all)
+            await conn.run_sync(BaseDBModel.metadata.drop_all)  # type: ignore[attr-defined]
 
     await async_engine.dispose()
 
 
 @pytest_asyncio.fixture(scope='function')
-async def async_session(mock_redis) -> AsyncSession:
+async def async_session(mock_redis) -> AsyncGenerator[AsyncSession, None]:
     async with async_session_generator() as s:
         yield s
 
 
 @pytest_asyncio.fixture
-async def async_session_without_clear() -> AsyncSession:
+async def async_session_without_clear() -> AsyncGenerator[AsyncGenerator, None]:
     async with async_session_generator(clear_db=False) as s:
         yield s
 
 
 @pytest_asyncio.fixture(scope='function')
-async def async_crud(async_session):
+async def async_crud(async_session: AsyncSession) -> AsyncGenerator[CRUDDataBase, None]:
     """Generator crud fixture with non-data DB."""
     yield CRUDDataBase(async_session)
 
 
 @pytest.fixture(scope='function')
-def generate_test_data():
+def generate_test_data() -> list:
     """Generate objects for init test DB with data."""
     menu_mapping = ('id', 'title', 'description')
     submenu_mapping = ('id', 'menu_id', 'title', 'description')
     dish_mapping = ('id', 'submenu_id', 'title', 'description', 'price')
 
-    objs = []
+    objs: list = []
     for obj_data in INIT_DATA['menus']:
         objs.append(models.MenuDBModel(**dict(zip(menu_mapping, obj_data))))
     for obj_data in INIT_DATA['submenus']:
@@ -95,7 +96,7 @@ def generate_test_data():
 
 
 @pytest_asyncio.fixture(scope='function')
-async def async_crud_with_data(generate_test_data, async_session):
+async def async_crud_with_data(generate_test_data, async_session: AsyncSession) -> AsyncGenerator[CRUDDataBase, None]:
     """Generator crud fixture with initialized data in DB."""
     for obj in generate_test_data:
         async_session.add(obj)
@@ -104,20 +105,20 @@ async def async_crud_with_data(generate_test_data, async_session):
 
 
 @pytest_asyncio.fixture
-async def api(async_client):
+async def api(async_client: AsyncClient) -> AsyncGenerator[ApiTestService, None]:
     """Fixture client for API test."""
     yield ApiTestService(async_client)
 
 
 @pytest_asyncio.fixture(scope='class')
-def buffer():
+def buffer() -> Generator[dict[str, dict], None, None]:
     """Storage value between tests."""
-    buffer_data = {}
+    buffer_data: dict[str, dict] = {}
     yield buffer_data
 
 
 @pytest_asyncio.fixture
-async def mock_redis(monkeypatch):
+async def mock_redis(monkeypatch) -> list:
     """Mocking redis services."""
 
     call_lst = []

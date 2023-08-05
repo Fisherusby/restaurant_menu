@@ -9,7 +9,7 @@ from core.db import get_session
 router = APIRouter()
 
 
-@router.get('', status_code=200, response_model=list[schemas.ResponseMenuSchema])
+@router.get('', status_code=200, response_model=list[schemas.ResponseMenuSchema], name='get_menu_list')
 async def get_menu_list(db: AsyncSession = Depends(get_session)) -> list[schemas.ResponseMenuSchema]:
     """Get menus."""
 
@@ -17,7 +17,7 @@ async def get_menu_list(db: AsyncSession = Depends(get_session)) -> list[schemas
     return menu_list
 
 
-@router.post('', status_code=201, response_model=schemas.ResponseMenuSchema)
+@router.post('', status_code=201, response_model=schemas.ResponseMenuSchema, name='create_menu')
 async def create_menu(data: schemas.MenuSchema, db: AsyncSession = Depends(get_session)) -> schemas.ResponseMenuSchema:
     """Add menu."""
 
@@ -25,7 +25,7 @@ async def create_menu(data: schemas.MenuSchema, db: AsyncSession = Depends(get_s
     return menu
 
 
-@router.get('/{menu_id}', status_code=200, response_model=schemas.ResponseMenuWithCountSchema)
+@router.get('/{menu_id}', status_code=200, response_model=schemas.ResponseMenuWithCountSchema, name='get_menu')
 async def detail_menu(menu_id: UUID, db: AsyncSession = Depends(get_session)) -> schemas.ResponseMenuWithCountSchema:
     """Get menu's detail."""
 
@@ -33,7 +33,7 @@ async def detail_menu(menu_id: UUID, db: AsyncSession = Depends(get_session)) ->
     return menu
 
 
-@router.patch('/{menu_id}', status_code=200, response_model=schemas.ResponseMenuSchema)
+@router.patch('/{menu_id}', status_code=200, response_model=schemas.ResponseMenuSchema, name='update_menu')
 async def update_menu(
     menu_id: UUID, data: schemas.UpdateMenuSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseMenuSchema:
@@ -46,7 +46,7 @@ async def update_menu(
     return menu
 
 
-@router.delete('/{menu_id}', status_code=200)
+@router.delete('/{menu_id}', status_code=200, name='delete_menu')
 async def delete_menu(menu_id: UUID, db: AsyncSession = Depends(get_session)) -> None:
     """Delete menu."""
 
