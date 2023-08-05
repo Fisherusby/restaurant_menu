@@ -2,6 +2,7 @@ version: '3.8'
 
 volumes:
   postgres_data: { }
+  redis_cache_data: { }
 
 services:
   fastapi:
@@ -14,6 +15,8 @@ services:
       - .:/app
     depends_on:
       postgres:
+        condition: service_healthy
+      redis_cache:
         condition: service_healthy
     ports:
       - "8000:80"
@@ -42,6 +45,31 @@ services:
       - .env
     networks:
       - ylab_network
+
+  redis_cache:
+    container_name: redis_cache
+    image: redis:7.0
+    restart: always
+    ports:
+      - '${REDIS_CACHE_PORT}:${REDIS_CACHE_PORT}'
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_CACHE_PASSWORD}
+    volumes:
+      - redis_cache_data:/data
+    environment:
+      - REDIS_PASSWORD=${REDIS_CACHE_PASSWORD}
+      - REDIS_HOST=${REDIS_CACHE_HOST}
+      - REDIS_PORT=${REDIS_CACHE_PORT}
+    env_file:
+      - .env
+    healthcheck:
+      test: redis-cli -a ${REDIS_CACHE_PASSWORD} -p ${REDIS_CACHE_PORT} ping | grep PONG
+      interval: 10s
+      timeout: 20s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ylab_network
+
 
 networks:
   ylab_network:

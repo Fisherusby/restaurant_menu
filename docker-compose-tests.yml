@@ -6,9 +6,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: python3 -m pytest -v
+    command: python3 -m pytest -v -s
     depends_on:
       postgres_test:
+        condition: service_healthy
+      redis_cache_test:
         condition: service_healthy
     env_file:
       - .env_test
@@ -27,6 +29,26 @@ services:
       retries: 5
     env_file:
       - .env_test
+    networks:
+      - ylab_network_test
+
+  redis_cache_test:
+    container_name: redis_cache_test
+    image: redis:7.0
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning --requirepass password
+    environment:
+      - REDIS_PASSWORD=password
+      - REDIS_HOST=redis_cache_test
+      - REDIS_PORT=6379
+    env_file:
+      - .env_test
+    healthcheck:
+      test: redis-cli -a password -p 6379 ping | grep PONG
+      interval: 10s
+      timeout: 20s
+      retries: 5
+      start_period: 30s
     networks:
       - ylab_network_test
 

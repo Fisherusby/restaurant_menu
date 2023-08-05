@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
 
+    REDIS_CACHE_PASSWORD: str
+    REDIS_CACHE_HOST: str
+    REDIS_CACHE_PORT: int
+
+    CACHE_TIME_LIFE: int = 60 * 5
+
     class Config:
         case_sensitive = True
 

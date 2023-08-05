@@ -33,12 +33,6 @@ target_metadata = BaseDBModel.metadata
 
 
 def get_url():
-    print(
-        os.getenv(
-            'SQLALCHEMY_SYNC_DATABASE_URL',
-            'postgresql://user:password@localhost:5432/db',
-        )
-    )
     return os.getenv(
         'SQLALCHEMY_SYNC_DATABASE_URL',
         'postgresql://user:password@localhost:5432/db',

@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 
 import pytest
@@ -14,6 +15,13 @@ from core.models.base import BaseDBModel
 from core.settings import settings
 from tests.utils import ApiTestService, CRUDDataBase
 from tests.utils.init_data import INIT_DATA
+
+
+@pytest.fixture(scope='session')
+def event_loop(request):
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest_asyncio.fixture
@@ -51,7 +59,7 @@ async def async_session_generator(clear_db: bool = True) -> AsyncSession:
 
 
 @pytest_asyncio.fixture(scope='function')
-async def async_session() -> AsyncSession:
+async def async_session(mock_redis) -> AsyncSession:
     async with async_session_generator() as s:
         yield s
 
@@ -106,3 +114,26 @@ def buffer():
     """Storage value between tests."""
     buffer_data = {}
     yield buffer_data
+
+
+@pytest_asyncio.fixture
+async def mock_redis(monkeypatch):
+    """Mocking redis services."""
+
+    call_lst = []
+
+    async def set_(*args, **kwargs):
+        call_lst.append(('set', kwargs))
+
+    async def get_(*args, **kwargs):
+        call_lst.append(('get', kwargs))
+        return None
+
+    async def del_(*args, **kwargs):
+        call_lst.append(('delete', kwargs))
+
+    monkeypatch.setattr('core.services.redis.RadisCacheService.set', set_)
+    monkeypatch.setattr('core.services.redis.RadisCacheService.get', get_)
+    monkeypatch.setattr('core.services.redis.RadisCacheService.delete', del_)
+
+    return call_lst
