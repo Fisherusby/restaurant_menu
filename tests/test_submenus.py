@@ -62,15 +62,13 @@ class TestSubmenus(BaseTestCase):
             return
 
         resp_json: list[dict[str, str]] = response.json()
-        mapping_obj: dict[str, models.SubmenuDBModel] = {str(obj.id): obj for obj in submenus_objects}
+        db_objs_dict: dict[str, models.SubmenuDBModel] = {str(obj.id): obj for obj in submenus_objects}
 
         assert menu_obj is not None
         assert len(resp_json) == len(submenus_objects)
 
         for resp_obj in resp_json:
-            assert resp_obj['id'] == str(mapping_obj[resp_obj['id']].id)
-            assert resp_obj['title'] == mapping_obj[resp_obj['id']].title
-            assert resp_obj['description'] == mapping_obj[resp_obj['id']].description
+            self.assert_resp_and_db_obj(resp_obj, db_objs_dict[resp_obj['id']])
 
     @pytest.mark.parametrize(
         'menu_id,created_data,expected_status_code,expected_response',

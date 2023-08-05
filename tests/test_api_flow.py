@@ -7,7 +7,9 @@ from tests.utils import ApiTestService
 class TestApiFlow:
     @pytest.mark.order(1)
     @pytest.mark.asyncio
-    async def test_create_menu(self, api: ApiTestService, async_session_without_clear: AsyncSession, buffer: dict[str, dict]):
+    async def test_create_menu(
+            self, api: ApiTestService, async_session_without_clear: AsyncSession, buffer: dict[str, dict]
+    ):
         buffer['menu_1'] = await api.create(
             api.MENU,
             {'title': 'menu 1', 'description': 'description menu 1'},

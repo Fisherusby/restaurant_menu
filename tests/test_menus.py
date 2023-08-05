@@ -37,15 +37,12 @@ class TestMenus(BaseTestCase):
         url: str = self.reverse('get_menu_list')
         response: Response = await async_client.get(url=url)
         assert response.status_code == 200
-        resp_json: dict = response.json()
+        resp_json: list[dict[str, str]] = response.json()
 
         menu_count = await async_crud_with_data.get_count(model=models.MenuDBModel)
 
         assert len(resp_json) == menu_count > 0
-        for resp_obj in resp_json:
-            db_obj: models.MenuDBModel = await async_crud_with_data.get_by_id(models.MenuDBModel, resp_obj['id'])
-            assert resp_obj['title'] == db_obj.title
-            assert resp_obj['description'] == db_obj.description
+        await self.assert_equal_response_list_db_objects(resp_json, async_crud_with_data)
 
     @pytest.mark.parametrize(
         'created_data,expected_status_code',

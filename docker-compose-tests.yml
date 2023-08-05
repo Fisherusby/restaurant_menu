@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: python3 -m pytest -v -s
+    command: python3 -m pytest -v
     depends_on:
       postgres_test:
         condition: service_healthy

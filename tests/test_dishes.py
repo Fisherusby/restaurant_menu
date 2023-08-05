@@ -91,11 +91,7 @@ class TestDishes(BaseTestCase):
         db_objs_dict: dict[str, models.DishDBModel] = {str(obj.id): obj for obj in db_objs}
 
         for resp_obj in resp_json:
-            assert resp_obj['id'] == str(db_objs_dict[resp_obj['id']].id)
-            assert resp_obj['submenu_id'] == str(db_objs_dict[resp_obj['id']].submenu_id)
-            assert resp_obj['title'] == db_objs_dict[resp_obj['id']].title
-            assert resp_obj['description'] == db_objs_dict[resp_obj['id']].description
-            assert resp_obj['price'] == str(db_objs_dict[resp_obj['id']].price)
+            self.assert_resp_and_db_obj(resp_obj, db_objs_dict[resp_obj['id']])
 
     @pytest.mark.parametrize(
         'menu_id,submenu_id,created_data,expected_status_code,expected_response',

@@ -9,13 +9,11 @@ from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-from core import models
 from core.db import async_engine
 from core.main import app
 from core.models.base import BaseDBModel
 from core.settings import settings
-from tests.utils import ApiTestService, CRUDDataBase
-from tests.utils.init_data import INIT_DATA
+from tests.utils import INIT_DATA_ALL, ApiTestService, CRUDDataBase
 
 
 @pytest.fixture(scope='session')
@@ -77,22 +75,23 @@ async def async_crud(async_session: AsyncSession) -> AsyncGenerator[CRUDDataBase
     yield CRUDDataBase(async_session)
 
 
+@pytest.fixture(scope='session')
+def init_db_data():
+    """Prepare date for init test DB"""
+    data_obj = []
+    for table in INIT_DATA_ALL.values():
+        tb_model = table['model']
+        table_data: list[tuple] = table['data']
+        for obj_data in table_data:
+            data: dict[str, str] = dict(zip(table['mapping'], obj_data))
+            data_obj.append([tb_model, data])
+    return data_obj
+
+
 @pytest.fixture(scope='function')
-def generate_test_data() -> list:
+def generate_test_data(init_db_data) -> list:
     """Generate objects for init test DB with data."""
-    menu_mapping = ('id', 'title', 'description')
-    submenu_mapping = ('id', 'menu_id', 'title', 'description')
-    dish_mapping = ('id', 'submenu_id', 'title', 'description', 'price')
-
-    objs: list = []
-    for obj_data in INIT_DATA['menus']:
-        objs.append(models.MenuDBModel(**dict(zip(menu_mapping, obj_data))))
-    for obj_data in INIT_DATA['submenus']:
-        objs.append(models.SubmenuDBModel(**dict(zip(submenu_mapping, obj_data))))
-    for obj_data in INIT_DATA['dishes']:
-        objs.append(models.DishDBModel(**dict(zip(dish_mapping, obj_data))))
-
-    return objs
+    return [obj[0](**obj[1]) for obj in init_db_data]
 
 
 @pytest_asyncio.fixture(scope='function')
