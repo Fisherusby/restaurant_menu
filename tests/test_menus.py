@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from core import models
 from tests.base import BaseTestCase
-from tests.utils import CRUDDataBase, uuid_or_none
+from tests.utils import CRUDDataBase, reverse, uuid_or_none
 
 
 class TestMenus(BaseTestCase):
@@ -24,7 +24,7 @@ class TestMenus(BaseTestCase):
     @pytest.mark.asyncio
     async def test_get_list_menus_empty_menu(self, async_client: AsyncClient, async_crud: CRUDDataBase):
         """Testing get an empty list of menus."""
-        url: str = self.reverse('get_menu_list')
+        url: str = reverse('get_menu_list')
         response: Response = await async_client.get(url=url)
         assert response.status_code == 200
         menu_count: int = await async_crud.get_count(model=models.MenuDBModel)
@@ -34,7 +34,7 @@ class TestMenus(BaseTestCase):
     @pytest.mark.asyncio
     async def test_get_list_menus(self, async_client: AsyncClient, async_crud_with_data: CRUDDataBase):
         """Testing get a list of menus."""
-        url: str = self.reverse('get_menu_list')
+        url: str = reverse('get_menu_list')
         response: Response = await async_client.get(url=url)
         assert response.status_code == 200
         resp_json: list[dict[str, str]] = response.json()
@@ -65,7 +65,7 @@ class TestMenus(BaseTestCase):
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing create menu."""
-        url: str = self.reverse('create_menu')
+        url: str = reverse('create_menu')
         response: Response = await async_client.post(url=url, json=created_data)
         assert response.status_code == expected_status_code
 
@@ -134,7 +134,7 @@ class TestMenus(BaseTestCase):
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing get menu's detail."""
-        url: str = self.reverse('get_menu', menu_id=menu_id)
+        url: str = reverse('get_menu', args=[menu_id])
         response: Response = await async_client.get(url=url)
         assert response.status_code == expected_status_code
 
@@ -263,7 +263,7 @@ class TestMenus(BaseTestCase):
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing update menu's parameters."""
-        url: str = self.reverse('update_menu', menu_id=menu_id)
+        url: str = reverse('update_menu', args=[menu_id])
         response: Response = await async_client.patch(url=url, json=updated_data)
 
         assert response.status_code == expected_status_code
@@ -302,7 +302,7 @@ class TestMenus(BaseTestCase):
 
         submenus_ids, dishes_ids = await self.get_ids_submenus_dishes_by_menu_id(async_crud_with_data, menu_id)
         before_obj_count: int = await async_crud_with_data.get_count(models.MenuDBModel)
-        url: str = self.reverse('delete_menu', menu_id=menu_id)
+        url: str = reverse('delete_menu', args=[menu_id])
         response: Response = await async_client.delete(url=url)
         after_obj_count: int = await async_crud_with_data.get_count(models.MenuDBModel)
         assert response.status_code == expected_status_code

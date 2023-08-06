@@ -24,15 +24,23 @@ class RadisCacheService(BaseCacheService):
             return
         await self.client.set(key, pickle.dumps(value), ex=settings.CACHE_LIFETIME)
 
-    async def delete(self, *patterns: str) -> None:
+    async def delete(self, key: str) -> None:
+        """Delete value from redis by key"""
+        await self.client.delete(key)
+
+    async def find_keys(self, pattern: str) -> list[str]:
+        """Return all found keys in redis by pattern"""
+        return await self.client.keys(pattern)
+
+    async def del_by_pattens(self, *patterns: str) -> None:
         """Delete all values from redis by patterns of keys"""
         keys: set = set()
         for pattern in patterns:
             keys.update(
-                await self.client.keys(pattern)
+                await self.find_keys(pattern)
             )
         for key in keys:
-            await self.client.delete(key)
+            await self.delete(key)
 
 
 redis_service = RadisCacheService(

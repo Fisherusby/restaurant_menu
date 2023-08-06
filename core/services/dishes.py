@@ -87,7 +87,7 @@ class DishesService(BaseObjectService):
         )
         updated_dish: models.DishDBModel = await self.repository.update(db=db, db_obj=dish, obj_in=data)
 
-        await services.redis_service.delete(
+        await services.redis_service.del_by_pattens(
             self.gen_key(menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id),
             self.gen_key(menu_id=menu_id, submenu_id=submenu_id, many=True),
         )
@@ -111,7 +111,7 @@ class DishesService(BaseObjectService):
         if dish_id is not None:
             patterns.append(self.gen_key(menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id))
 
-        await services.redis_service.delete(*patterns)
+        await services.redis_service.del_by_pattens(*patterns)
 
 
 dishes_service = DishesService(repositories.dishes)

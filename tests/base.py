@@ -3,7 +3,7 @@ from typing import Generic
 
 from httpx import Response
 
-from tests.utils import CRUDDataBase, ModelType, reverse
+from tests.utils import CRUDDataBase, ModelType
 
 
 class BaseTestCase(ABC, Generic[ModelType]):
@@ -18,11 +18,6 @@ class BaseTestCase(ABC, Generic[ModelType]):
     def fields_for_assert(self):
         """List of fields  from DB model existing in response."""
         pass
-
-    @staticmethod
-    def reverse(name: str, **kwargs) -> str:
-        """Generate API url by endpoint name"""
-        return reverse(name, **kwargs)
 
     async def assert_equal_response_list_db_objects(
             self, resp_json_list: list[dict[str, str]], crud: CRUDDataBase

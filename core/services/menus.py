@@ -57,7 +57,7 @@ class MenusService(BaseObjectService):
     async def create_menu(self, db: AsyncSession, data: schemas.MenuSchema) -> schemas.ResponseMenuSchema:
         """Create menu."""
         menu: models.MenuDBModel = await self.repository.create(db=db, obj_in=data)
-        await services.redis_service.delete(self.gen_key(many=True))
+        await services.redis_service.del_by_pattens(self.gen_key(many=True))
 
         return schemas.ResponseMenuSchema(**menu.to_dict())
 
@@ -67,7 +67,7 @@ class MenusService(BaseObjectService):
         """Update menu data."""
         menu: models.MenuDBModel = await self.get_menu_by_id_or_404(db=db, menu_id=menu_id)
 
-        await services.redis_service.delete(
+        await services.redis_service.del_by_pattens(
             self.gen_key(menu_id),
             self.gen_key(many=True)
         )
@@ -92,7 +92,7 @@ class MenusService(BaseObjectService):
 
     async def clear_cache(self, menu_id: UUID) -> None:
         """Clearing cache when delete menu"""
-        await services.redis_service.delete(
+        await services.redis_service.del_by_pattens(
             services.dishes_service.gen_key(menu_id=menu_id),
             services.submenus_service.gen_key(menu_id=menu_id),
             self.gen_key(menu_id=menu_id),

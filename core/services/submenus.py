@@ -93,7 +93,7 @@ class SubmenusService(BaseObjectService):
         )
         updated_submenu: models.SubmenuDBModel = await self.repository.update(db=db, db_obj=sub_menu, obj_in=data)
 
-        await services.redis_service.delete(
+        await services.redis_service.del_by_pattens(
             self.gen_key(menu_id=menu_id, submenu_id=submenu_id),
             self.gen_key(menu_id=menu_id, many=True)
         )
@@ -120,7 +120,7 @@ class SubmenusService(BaseObjectService):
                 services.dishes_service.gen_key(menu_id=menu_id, submenu_id=submenu_id)
             ]
 
-        await services.redis_service.delete(*patterns)
+        await services.redis_service.del_by_pattens(*patterns)
 
 
 submenus_service: SubmenusService = SubmenusService(repositories.submenus)

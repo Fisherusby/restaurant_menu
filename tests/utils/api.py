@@ -1,11 +1,6 @@
 from httpx import AsyncClient, Response
 
-from core.endpoints.api import router
-
-
-def reverse(name: str, **kwargs) -> str:
-    """Generate API url by endpoint name"""
-    return router.url_path_for(name, **kwargs)
+from tests.utils.reverse import reverse
 
 
 class ApiTestService:
@@ -54,7 +49,7 @@ class ApiTestService:
 
     async def get_list(self, entity: str, status_code: int = 200, **ids) -> Response | list[dict[str, str]]:
         """Call API for test a list of entities."""
-        url: str = reverse(self.URL_NAMES[entity][self.LIST], **ids)
+        url: str = reverse(self.URL_NAMES[entity][self.LIST], kwargs=ids)
         response: Response = await self.client.get(url=url)
         assert response.status_code == status_code
         if response.status_code == 200:
@@ -73,7 +68,7 @@ class ApiTestService:
             self, entity: str, json: dict[str, str], status_code: int = 201, **ids
     ) -> Response | dict[str, str]:
         """Call API for create entity."""
-        url: str = reverse(self.URL_NAMES[entity][self.CREATE], **ids)
+        url: str = reverse(self.URL_NAMES[entity][self.CREATE], kwargs=ids)
         response: Response = await self.client.post(url=url, json=json)
         assert response.status_code == status_code
         if response.status_code == 201:
@@ -89,7 +84,7 @@ class ApiTestService:
 
     async def read(self, entity: str, status_code: int = 200, **ids) -> Response | dict[str, str]:
         """Call API for get the entity."""
-        url: str = reverse(self.URL_NAMES[entity][self.READ], **ids)
+        url: str = reverse(self.URL_NAMES[entity][self.READ], kwargs=ids)
         response: Response = await self.client.get(url=url)
         assert response.status_code == status_code
         if response.status_code == 200:
@@ -107,7 +102,7 @@ class ApiTestService:
             self, entity: str, json: dict[str, str], status_code: int = 200, **ids
     ) -> Response | dict[str, str]:
         """Call API for update the entity."""
-        url: str = reverse(self.URL_NAMES[entity][self.UPDATE], **ids)
+        url: str = reverse(self.URL_NAMES[entity][self.UPDATE], kwargs=ids)
         response: Response = await self.client.patch(url=url, json=json)
         assert response.status_code == status_code
         if response.status_code == 200:
@@ -125,7 +120,7 @@ class ApiTestService:
 
     async def delete(self, entity: str, status_code: int = 200, **ids) -> Response:
         """Call API for delete the entity."""
-        url: str = reverse(self.URL_NAMES[entity][self.DELETE], **ids)
+        url: str = reverse(self.URL_NAMES[entity][self.DELETE], kwargs=ids)
         response: Response = await self.client.delete(url=url)
         assert response.status_code == status_code
         if response.status_code == 404:

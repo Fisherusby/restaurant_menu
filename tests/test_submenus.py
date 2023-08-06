@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from core import models
 from tests.base import BaseTestCase
-from tests.utils import CRUDDataBase, uuid_or_none
+from tests.utils import CRUDDataBase, reverse, uuid_or_none
 
 
 class TestSubmenus(BaseTestCase):
@@ -41,7 +41,7 @@ class TestSubmenus(BaseTestCase):
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing get a list of submenus."""
-        url: str = self.reverse('get_submenu_list', menu_id=menu_id)
+        url: str = reverse('get_submenu_list', args=[menu_id])
         response: Response = await async_client.get(url=url)
 
         assert response.status_code == expected_status_code
@@ -138,7 +138,7 @@ class TestSubmenus(BaseTestCase):
     ):
         """Testing create submenu."""
         before_obj_count: int = await async_crud_with_data.get_count(models.SubmenuDBModel)
-        url: str = self.reverse('create_submenu', menu_id=menu_id)
+        url: str = reverse('create_submenu', args=[menu_id])
         response: Response = await async_client.post(url=url, json=created_data)
         after_obj_count: int = await async_crud_with_data.get_count(models.SubmenuDBModel)
         assert response.status_code == expected_status_code
@@ -236,7 +236,7 @@ class TestSubmenus(BaseTestCase):
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing get a submenu details."""
-        url: str = self.reverse('get_submenu', menu_id=menu_id, submenu_id=submenu_id)
+        url: str = reverse('get_submenu', args=[menu_id, submenu_id])
         response: Response = await async_client.get(url=url)
         assert response.status_code == expected_status_code
 
@@ -392,7 +392,7 @@ class TestSubmenus(BaseTestCase):
         async_crud_with_data: CRUDDataBase,
     ):
         """Testing update submenu's parameters."""
-        url: str = self.reverse('update_submenu', menu_id=menu_id, submenu_id=submenu_id)
+        url: str = reverse('update_submenu', args=[menu_id, submenu_id])
         response: Response = await async_client.patch(url=url, json=updated_data)
 
         assert response.status_code == expected_status_code
@@ -468,7 +468,7 @@ class TestSubmenus(BaseTestCase):
         """Testing delete submenu."""
         dishes_ids = await self.get_ids_dishes_by_submenu_id(async_crud_with_data, submenu_id)
         before_obj_count: int = await async_crud_with_data.get_count(models.SubmenuDBModel)
-        url: str = self.reverse('delete_submenu', menu_id=menu_id, submenu_id=submenu_id)
+        url: str = reverse('delete_submenu', args=[menu_id, submenu_id])
         response: Response = await async_client.delete(url=url)
         after_obj_count: int = await async_crud_with_data.get_count(models.SubmenuDBModel)
 
