@@ -12,3 +12,7 @@ class APISchema(BaseModel):
 class BaseIdSchema(APISchema):
     # flake8: noqa: A003
     id: UUID
+
+
+class NotFoundSchema(BaseModel):
+    detail: str

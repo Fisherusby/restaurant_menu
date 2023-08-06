@@ -17,3 +17,5 @@ from core.schemas.submenus import (
     SubmenuWithMenuIdSchema,
     UpdateSubmenuSchema,
 )
+
+from core.schemas.base import NotFoundSchema

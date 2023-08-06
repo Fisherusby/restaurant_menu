@@ -13,7 +13,8 @@ router = APIRouter()
     '/{menu_id}/submenus',
     status_code=200,
     response_model=list[schemas.ResponseSubmenuSchema],
-    name='get_submenu_list'
+    name='get_submenu_list',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
 async def get_submenu_list(
     menu_id: UUID, db: AsyncSession = Depends(get_session)
@@ -27,7 +28,11 @@ async def get_submenu_list(
 
 
 @router.post(
-    '/{menu_id}/submenus', status_code=201, response_model=schemas.ResponseSubmenuSchema, name='create_submenu'
+    '/{menu_id}/submenus',
+    status_code=201,
+    response_model=schemas.ResponseSubmenuSchema,
+    name='create_submenu',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
 async def create_submenu(
     menu_id: UUID, data: schemas.SubmenuSchema, db: AsyncSession = Depends(get_session)
@@ -44,7 +49,8 @@ async def create_submenu(
     '/{menu_id}/submenus/{submenu_id}',
     status_code=200,
     response_model=schemas.ResponseSubmenuWithCountSchema,
-    name='get_submenu'
+    name='get_submenu',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
 async def detail_submenu(
     menu_id: UUID, submenu_id: UUID, db: AsyncSession = Depends(get_session)
@@ -61,7 +67,8 @@ async def detail_submenu(
     '/{menu_id}/submenus/{submenu_id}',
     status_code=200,
     response_model=schemas.ResponseSubmenuSchema,
-    name='update_submenu'
+    name='update_submenu',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
 async def update_submenu(
     menu_id: UUID, submenu_id: UUID, data: schemas.UpdateSubmenuSchema, db: AsyncSession = Depends(get_session)
@@ -77,7 +84,12 @@ async def update_submenu(
     return submenu
 
 
-@router.delete('/{menu_id}/submenus/{submenu_id}', status_code=200, name='delete_submenu')
+@router.delete(
+    '/{menu_id}/submenus/{submenu_id}',
+    status_code=200,
+    name='delete_submenu',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
+)
 async def delete_submenu(menu_id: UUID, submenu_id: UUID, db: AsyncSession = Depends(get_session)) -> None:
     """Delete submenu."""
 

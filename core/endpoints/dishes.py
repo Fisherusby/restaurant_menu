@@ -13,7 +13,8 @@ router = APIRouter()
     '/{menu_id}/submenus/{submenu_id}/dishes',
     status_code=200,
     response_model=list[schemas.ResponseDishSchema],
-    name='get_dish_list'
+    name='get_dish_list',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
 async def get_dish_list(
     menu_id: UUID, submenu_id: UUID, db: AsyncSession = Depends(get_session)
@@ -30,7 +31,8 @@ async def get_dish_list(
     '/{menu_id}/submenus/{submenu_id}/dishes',
     status_code=201,
     response_model=schemas.ResponseDishSchema,
-    name='create_dish'
+    name='create_dish',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
 async def create_dish(
     menu_id: UUID, submenu_id: UUID, data: schemas.DishSchema, db: AsyncSession = Depends(get_session)
@@ -47,7 +49,8 @@ async def create_dish(
     '/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
     status_code=200,
     response_model=schemas.ResponseDishSchema,
-    name='get_dish'
+    name='get_dish',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
 async def detail_dish(
     menu_id: UUID, submenu_id: UUID, dish_id: UUID, db: AsyncSession = Depends(get_session)
@@ -64,7 +67,8 @@ async def detail_dish(
     '/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
     status_code=200,
     response_model=schemas.ResponseDishSchema,
-    name='update_dish'
+    name='update_dish',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
 async def update_dish(
     menu_id: UUID,
@@ -84,7 +88,12 @@ async def update_dish(
     return dish
 
 
-@router.delete('/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', status_code=200, name='delete_dish')
+@router.delete(
+    '/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
+    status_code=200,
+    name='delete_dish',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
+)
 async def delete_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID, db: AsyncSession = Depends(get_session)) -> None:
     """Delete dish."""
 

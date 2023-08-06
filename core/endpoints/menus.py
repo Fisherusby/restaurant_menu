@@ -25,7 +25,13 @@ async def create_menu(data: schemas.MenuSchema, db: AsyncSession = Depends(get_s
     return menu
 
 
-@router.get('/{menu_id}', status_code=200, response_model=schemas.ResponseMenuWithCountSchema, name='get_menu')
+@router.get(
+    '/{menu_id}',
+    status_code=200,
+    response_model=schemas.ResponseMenuWithCountSchema,
+    name='get_menu',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
+)
 async def detail_menu(menu_id: UUID, db: AsyncSession = Depends(get_session)) -> schemas.ResponseMenuWithCountSchema:
     """Get menu's detail."""
 
@@ -33,7 +39,13 @@ async def detail_menu(menu_id: UUID, db: AsyncSession = Depends(get_session)) ->
     return menu
 
 
-@router.patch('/{menu_id}', status_code=200, response_model=schemas.ResponseMenuSchema, name='update_menu')
+@router.patch(
+    '/{menu_id}',
+    status_code=200,
+    response_model=schemas.ResponseMenuSchema,
+    name='update_menu',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
+)
 async def update_menu(
     menu_id: UUID, data: schemas.UpdateMenuSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseMenuSchema:
@@ -46,7 +58,12 @@ async def update_menu(
     return menu
 
 
-@router.delete('/{menu_id}', status_code=200, name='delete_menu')
+@router.delete(
+    '/{menu_id}',
+    status_code=200,
+    name='delete_menu',
+    responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
+)
 async def delete_menu(menu_id: UUID, db: AsyncSession = Depends(get_session)) -> None:
     """Delete menu."""
 
