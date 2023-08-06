@@ -22,7 +22,7 @@ class RadisCacheService(BaseCacheService):
         """Set value to redis by key"""
         if value is None:
             return
-        await self.client.set(key, pickle.dumps(value), ex=settings.CACHE_TIME_LIFE)
+        await self.client.set(key, pickle.dumps(value), ex=settings.CACHE_LIFETIME)
 
     async def delete(self, *patterns: str) -> None:
         """Delete all values from redis by patterns of keys"""

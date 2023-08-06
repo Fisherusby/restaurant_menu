@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     REDIS_CACHE_HOST: str
     REDIS_CACHE_PORT: int
 
-    CACHE_TIME_LIFE: int = 60 * 5
+    CACHE_LIFETIME: int = 60 * 5
 
     class Config:
         case_sensitive = True

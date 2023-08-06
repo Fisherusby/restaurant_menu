@@ -68,6 +68,7 @@
 - FastAPI
 - Docker Compose
 - PostgreSQL
+- Redis
 - SQLAlchemy
 - Alembic
 - pytest
