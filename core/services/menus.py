@@ -1,3 +1,4 @@
+import itertools
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -98,6 +99,25 @@ class MenusService(BaseObjectService):
             self.gen_key(menu_id=menu_id),
             self.gen_key(many=True)
         )
+
+    async def get_all_in_one(self, db: AsyncSession) -> list[schemas.ResponseMenuWitSubmenusSchema]:
+        all_data: list[tuple[models.MenuDBModel, models.SubmenuDBModel | None, models.DishDBModel | None]] = (
+            await self.repository.get_all_in_one(db=db)
+        )
+        response_data: list[schemas.ResponseMenuWitSubmenusSchema] = []
+        for menu, menu_group in itertools.groupby(all_data, key=lambda x: x[0]):
+            submenus: list[schemas.ResponseSubmenuWithDishesSchema] = []
+            for submenu, dishes_group in itertools.groupby(menu_group, key=lambda x: x[1]):
+                if submenu is None:
+                    continue
+                dishes: list[schemas.ResponseDishSchema] = []
+                for _, _, dish in dishes_group:
+                    if dish is None:
+                        continue
+                    dishes.append(schemas.ResponseDishSchema(**dish.to_dict()))
+                submenus.append(schemas.ResponseSubmenuWithDishesSchema(**submenu.to_dict(), dishes=dishes))
+            response_data.append(schemas.ResponseMenuWitSubmenusSchema(**menu.to_dict(), submenus=submenus))
+        return response_data
 
 
 menus_service: MenusService = MenusService(repositories.menus)

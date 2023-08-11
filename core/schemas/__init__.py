@@ -18,4 +18,9 @@ from core.schemas.submenus import (
     UpdateSubmenuSchema,
 )
 
+from core.schemas.all_in_one import (
+    ResponseMenuWitSubmenusSchema,
+    ResponseSubmenuWithDishesSchema,
+)
+
 from core.schemas.base import NotFoundSchema
