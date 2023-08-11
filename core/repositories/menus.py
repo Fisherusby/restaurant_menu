@@ -25,5 +25,16 @@ class MenuRepository(BaseRepository[models.MenuDBModel, schemas.MenuSchema, sche
         )
         return (await db.execute(query)).first()
 
+    async def get_all_in_one(
+            self, db: AsyncSession
+    ) -> list[tuple[models.MenuDBModel, models.SubmenuDBModel | None, models.DishDBModel | None]]:
+        query = (
+            select(models.MenuDBModel, models.SubmenuDBModel, models.DishDBModel)
+            .join(models.SubmenuDBModel, models.MenuDBModel.id == models.SubmenuDBModel.menu_id, isouter=True)
+            .join(models.DishDBModel, models.SubmenuDBModel.id == models.DishDBModel.submenu_id, isouter=True)
+        )
+
+        return (await db.execute(query)).all()
+
 
 menus: MenuRepository = MenuRepository(models.MenuDBModel)

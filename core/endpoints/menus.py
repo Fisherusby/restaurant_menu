@@ -68,3 +68,16 @@ async def delete_menu(menu_id: UUID, db: AsyncSession = Depends(get_session)) ->
     """Delete menu."""
 
     await services.menus_service.delete_menu(db=db, menu_id=menu_id)
+
+
+@router.get(
+    '/all_in_one',
+    status_code=200,
+    response_model=list[schemas.ResponseMenuWitSubmenusSchema],
+    name='get_all_in_one',
+    tags=['all_in_one']
+)
+async def get_all_in_one(db: AsyncSession = Depends(get_session)) -> list[schemas.ResponseMenuWitSubmenusSchema]:
+    """Get all menus with menus' submenus with submenus' dishes."""
+
+    return await services.menus_service.get_all_in_one(db=db)
