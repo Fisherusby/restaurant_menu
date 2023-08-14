@@ -314,7 +314,7 @@ class XLSAdminService(Generic[ParsingSchemaType, ModelType]):
         """Parsings data from pandas DataFrame"""
         current_row_index: int = -1
 
-        all_data: dict[UUID, dict[str, Any]] = {}
+        all_data: dict[Any, dict[str, Any]] = {}
 
         current_menu_id: UUID | None = None
         current_submenu_id: UUID | None = None
@@ -353,17 +353,17 @@ class XLSAdminService(Generic[ParsingSchemaType, ModelType]):
                     **entity_obj,
                     child={},
                 )
-                current_menu_id = UUID(str(menu['id']))
+                current_menu_id = menu['id']
                 all_data[current_menu_id] = menu
             elif is_entity == const.SUBMENU and current_menu_id is not None:
                 submenu: dict[str, Any] = dict(
                     **entity_obj,
                     child={},
                 )
-                current_submenu_id = UUID(str(submenu['id']))
+                current_submenu_id = submenu['id']
                 all_data[current_menu_id]['child'][current_submenu_id] = submenu
             elif is_entity == const.DISH and current_submenu_id is not None and current_menu_id is not None:
-                dish_id: UUID = UUID(str(entity_obj['id']))
+                dish_id = entity_obj['id']
                 try:
                     self.__find_discount(row_cells, dish_id)
                 except (ValueError, InvalidOperation):
