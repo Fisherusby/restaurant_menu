@@ -172,10 +172,12 @@ class XLSAdminService(Generic[ParsingSchemaType, ModelType]):
         for entity, operation, obj_id, data, db_obj, ids in self.__to_db:
             if operation == const.DELETE:
                 await self.repositories[entity].delete_by_id(db=db, obj_id=obj_id)
+
             if operation == const.UPDATE:
                 await self.repositories[entity].update(db=db, db_obj=db_obj, obj_in=data)
             if operation == const.CREATE:
                 await self.repositories[entity].create(db=db, obj_in=data)
+            self.logger.info('Applied %s %s[%s]', operation, entity, obj_id)
             patterns.update(await self.services[entity].clearing_cache_patterns(operation, **ids))
         if patterns:
             self.logger.info('Clearing cache')
