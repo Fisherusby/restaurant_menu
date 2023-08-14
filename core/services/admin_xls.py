@@ -234,14 +234,13 @@ class XLSAdminService(Generic[ParsingSchemaType, ModelType]):
     async def __entity_to_create(self, entity: str, in_file: dict[UUID, dict[str, Any]], ids: dict[str, UUID]) -> None:
         """Create tasks for create entity objects in DB"""
         for entity_in_file in in_file.values():
-            self.logger.info(
-                'Need to create %s: %s', entity, entity_in_file
-            )
             entity_ids: dict[str, UUID] = dict(**ids)
             entity_ids[f'{entity}_id'] = entity_in_file['id']
             data: dict[str, Any] = {k: entity_in_file[k] for k in const.mapping_entity_to_create[entity]}
+            self.logger.info(
+                'Need to create %s: %s', entity, data
+            )
             self.__to_db.append((entity, const.CREATE, entity_in_file['id'], data, None, entity_ids))
-
             entity_child: str | None = const.entity_child[entity]
             if entity_child is None or not entity_in_file['child']:
                 continue
