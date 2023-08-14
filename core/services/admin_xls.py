@@ -346,7 +346,6 @@ class XLSAdminService(Generic[ParsingSchemaType, ModelType]):
                 entity_ids[is_entity].append(entity_obj['id'])
             else:
                 errors.append(f'duplicate {is_entity} id={entity_obj["id"]} in {current_row_index + 1} row')
-                continue
 
             if is_entity == const.MENU:
                 menu: dict[str, Any] = dict(
