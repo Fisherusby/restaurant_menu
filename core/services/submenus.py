@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from fastapi import HTTPException
+from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core import models, repositories, schemas, services
+from core import constants, models, repositories, schemas, services
 from core.services.base import BaseObjectService
 
 
@@ -74,18 +74,28 @@ class SubmenusService(BaseObjectService):
         return submenu
 
     async def create_submenu(
-        self, db: AsyncSession, menu_id: UUID, data: schemas.SubmenuSchema
+        self, db: AsyncSession, menu_id: UUID, data: schemas.SubmenuSchema, bgtask: BackgroundTasks
     ) -> schemas.ResponseSubmenuSchema:
         """Create submenu in menu."""
         await services.menus_service.get_menu_by_id_or_404(db=db, menu_id=menu_id)
         obj_in: schemas.SubmenuWithMenuIdSchema = schemas.SubmenuWithMenuIdSchema(**data.model_dump(), menu_id=menu_id)
         submenu: models.SubmenuDBModel = await self.repository.create(db=db, obj_in=obj_in)
 
-        await self.clear_cache(menu_id)
+        bgtask.add_task(
+            self.clearing_cache_process,
+            operation=constants.CREATE,
+            menu_id=menu_id,
+        )
+
         return schemas.ResponseSubmenuSchema(**submenu.to_dict())
 
     async def update_submenu(
-        self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, data: schemas.UpdateSubmenuSchema
+        self,
+        db: AsyncSession,
+        menu_id: UUID,
+        submenu_id: UUID,
+        data: schemas.UpdateSubmenuSchema,
+        bgtask: BackgroundTasks
     ) -> schemas.ResponseSubmenuSchema:
         """Update submenu data."""
         sub_menu: models.SubmenuDBModel = await self.get_submenu_by_id_or_404(
@@ -93,34 +103,62 @@ class SubmenusService(BaseObjectService):
         )
         updated_submenu: models.SubmenuDBModel = await self.repository.update(db=db, db_obj=sub_menu, obj_in=data)
 
-        await services.redis_service.del_by_pattens(
-            self.gen_key(menu_id=menu_id, submenu_id=submenu_id),
-            self.gen_key(menu_id=menu_id, many=True)
+        bgtask.add_task(
+            self.clearing_cache_process,
+            operation=constants.UPDATE,
+            menu_id=menu_id,
+            submenu_id=submenu_id,
         )
+
         return schemas.ResponseSubmenuSchema(**updated_submenu.to_dict())
 
-    async def delete_submenu(self, db: AsyncSession, menu_id: UUID, submenu_id: UUID):
+    async def delete_submenu(self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, bgtask: BackgroundTasks):
         """Delete submenu by IDs of menu adn submenu."""
         sub_menu: models.SubmenuDBModel = await self.get_submenu_by_id_or_404(
             db=db, menu_id=menu_id, submenu_id=submenu_id
         )
 
         await self.repository.delete_by_id(db=db, obj_id=sub_menu.id)
-        await self.clear_cache(menu_id, submenu_id)
 
-    async def clear_cache(self, menu_id: UUID, submenu_id: UUID | None = None) -> None:
-        """Clearing cache when create or delete submenu"""
-        patterns: list[str] = [
-            services.menus_service.gen_key(menu_id),
-            self.gen_key(menu_id=menu_id, many=True),
-        ]
-        if submenu_id is not None:
-            patterns += [
+        bgtask.add_task(
+            self.clearing_cache_process,
+            operation=constants.DELETE,
+            menu_id=menu_id,
+            submenu_id=submenu_id,
+        )
+
+    async def clearing_cache_process(self, operation: str, menu_id: UUID, submenu_id: UUID | None = None) -> None:
+        """Clear cache after create, update, delete."""
+        patterns: list[str] = await self.clearing_cache_patterns(
+            operation=operation, menu_id=menu_id, submenu_id=submenu_id)
+        await services.redis_service.del_by_pattens(*patterns)
+
+    async def clearing_cache_patterns(self, operation: str, menu_id: UUID, submenu_id: UUID | None) -> list[str]:
+        """Generate patterns for key by operation type (create, update, delete)"""
+        if operation == constants.CREATE:
+            return [
+                services.menus_service.gen_key(menu_id=menu_id),
+                self.gen_key(menu_id=menu_id, many=True),
+            ]
+
+        if submenu_id is None:
+            return []
+
+        if operation == constants.UPDATE:
+            return [
+                self.gen_key(menu_id=menu_id, many=True),
+                self.gen_key(menu_id=menu_id, submenu_id=submenu_id),
+            ]
+
+        if operation == constants.DELETE:
+            return [
+                services.menus_service.gen_key(menu_id=menu_id),
+                self.gen_key(menu_id=menu_id, many=True),
                 self.gen_key(menu_id=menu_id, submenu_id=submenu_id),
                 services.dishes_service.gen_key(menu_id=menu_id, submenu_id=submenu_id)
             ]
 
-        await services.redis_service.del_by_pattens(*patterns)
+        return []
 
 
 submenus_service: SubmenusService = SubmenusService(repositories.submenus)

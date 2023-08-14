@@ -26,6 +26,14 @@ class Settings(BaseSettings):
 
     CACHE_LIFETIME: int = 60 * 5
 
+    RABBITMQ_DEFAULT_USER: str
+    RABBITMQ_DEFAULT_PASS: str
+    RABBITMQ_HOST: str
+    RABBITMQ_PORT: int
+
+    ADMIN_DATA_SOURCE: str
+    ADMIN_DATA_UPDATE_PERIODIC: int = 15
+
     class Config:
         case_sensitive = True
 

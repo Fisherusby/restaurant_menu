@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from core import models, schemas
 from core.repositories.base import BaseRepository
@@ -28,10 +29,15 @@ class MenuRepository(BaseRepository[models.MenuDBModel, schemas.MenuSchema, sche
     async def get_all_in_one(
             self, db: AsyncSession
     ) -> list[tuple[models.MenuDBModel, models.SubmenuDBModel | None, models.DishDBModel | None]]:
+
         query = (
             select(models.MenuDBModel, models.SubmenuDBModel, models.DishDBModel)
             .join(models.SubmenuDBModel, models.MenuDBModel.id == models.SubmenuDBModel.menu_id, isouter=True)
             .join(models.DishDBModel, models.SubmenuDBModel.id == models.DishDBModel.submenu_id, isouter=True)
+            .options(
+                selectinload(models.DishDBModel.discount)
+            )
+            .order_by(models.MenuDBModel.id, models.SubmenuDBModel.id, models.DishDBModel.id)
         )
 
         return (await db.execute(query)).all()

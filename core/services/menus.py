@@ -1,10 +1,10 @@
 import itertools
 from uuid import UUID
 
-from fastapi import HTTPException
+from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core import models, repositories, schemas, services
+from core import constants, models, repositories, schemas, services
 from core.services.base import BaseObjectService
 
 
@@ -55,32 +55,45 @@ class MenusService(BaseObjectService):
 
         return menu_response
 
-    async def create_menu(self, db: AsyncSession, data: schemas.MenuSchema) -> schemas.ResponseMenuSchema:
+    async def create_menu(
+            self, db: AsyncSession, data: schemas.MenuSchema, bgtask: BackgroundTasks
+    ) -> schemas.ResponseMenuSchema:
         """Create menu."""
         menu: models.MenuDBModel = await self.repository.create(db=db, obj_in=data)
-        await services.redis_service.del_by_pattens(self.gen_key(many=True))
+
+        bgtask.add_task(
+            self.clearing_cache_process,
+            operation=constants.CREATE
+        )
 
         return schemas.ResponseMenuSchema(**menu.to_dict())
 
     async def update_menu(
-        self, db: AsyncSession, menu_id: UUID, data: schemas.UpdateMenuSchema
+        self, db: AsyncSession, menu_id: UUID, data: schemas.UpdateMenuSchema, bgtask: BackgroundTasks
     ) -> schemas.ResponseMenuSchema:
         """Update menu data."""
         menu: models.MenuDBModel = await self.get_menu_by_id_or_404(db=db, menu_id=menu_id)
 
-        await services.redis_service.del_by_pattens(
-            self.gen_key(menu_id),
-            self.gen_key(many=True)
-        )
         updated_menu = await self.repository.update(db=db, obj_in=data, db_obj=menu)
+
+        bgtask.add_task(
+            self.clearing_cache_process,
+            operation=constants.UPDATE,
+            menu_id=menu_id
+        )
+
         return schemas.ResponseMenuSchema(**updated_menu.to_dict())
 
-    async def delete_menu(self, db: AsyncSession, menu_id: UUID) -> None:
+    async def delete_menu(self, db: AsyncSession, menu_id: UUID, bgtask: BackgroundTasks) -> None:
         """Delete menu."""
         await self.get_menu_by_id_or_404(db=db, menu_id=menu_id)
         await self.repository.delete_by_id(db=db, obj_id=menu_id)
 
-        await self.clear_cache(menu_id)
+        bgtask.add_task(
+            self.clearing_cache_process,
+            operation=constants.DELETE,
+            menu_id=menu_id
+        )
 
     async def get_menu_by_id_or_404(self, db: AsyncSession, menu_id: UUID) -> models.MenuDBModel:
         """Get menu data by ID or rise http 404 if non-exist."""
@@ -91,14 +104,33 @@ class MenusService(BaseObjectService):
 
         return menu
 
-    async def clear_cache(self, menu_id: UUID) -> None:
-        """Clearing cache when delete menu"""
-        await services.redis_service.del_by_pattens(
-            services.dishes_service.gen_key(menu_id=menu_id),
-            services.submenus_service.gen_key(menu_id=menu_id),
-            self.gen_key(menu_id=menu_id),
-            self.gen_key(many=True)
-        )
+    async def clearing_cache_process(self, operation: str, menu_id: UUID | None = None) -> None:
+        """Clear cache after create, update, delete."""
+        patterns: list[str] = await self.clearing_cache_patterns(operation=operation, menu_id=menu_id)
+        await services.redis_service.del_by_pattens(*patterns)
+
+    async def clearing_cache_patterns(self, operation: str, menu_id: UUID | None) -> list[str]:
+        """Generate patterns for key by operation type (create, update, delete)"""
+        if operation == constants.CREATE:
+            return [self.gen_key(many=True)]
+
+        if menu_id is None:
+            return []
+
+        if operation == constants.UPDATE:
+            return [
+                self.gen_key(many=True),
+                self.gen_key(menu_id=menu_id),
+            ]
+
+        if operation == constants.DELETE:
+            return [
+                self.gen_key(many=True),
+                self.gen_key(menu_id=menu_id),
+                services.dishes_service.gen_key(menu_id=menu_id),
+                services.submenus_service.gen_key(menu_id=menu_id),
+            ]
+        return []
 
     async def get_all_in_one(self, db: AsyncSession) -> list[schemas.ResponseMenuWitSubmenusSchema]:
         all_data: list[tuple[models.MenuDBModel, models.SubmenuDBModel | None, models.DishDBModel | None]] = (
@@ -107,14 +139,16 @@ class MenusService(BaseObjectService):
         response_data: list[schemas.ResponseMenuWitSubmenusSchema] = []
         for menu, menu_group in itertools.groupby(all_data, key=lambda x: x[0]):
             submenus: list[schemas.ResponseSubmenuWithDishesSchema] = []
-            for submenu, dishes_group in itertools.groupby(menu_group, key=lambda x: x[1]):
+            for submenu, submenu_group in itertools.groupby(menu_group, key=lambda x: x[1]):
                 if submenu is None:
                     continue
                 dishes: list[schemas.ResponseDishSchema] = []
-                for _, _, dish in dishes_group:
+                for _, _, dish in submenu_group:
                     if dish is None:
                         continue
-                    dishes.append(schemas.ResponseDishSchema(**dish.to_dict()))
+                    dishes.append(
+                        services.dishes_service.to_schema_with_discount(dish)
+                    )
                 submenus.append(schemas.ResponseSubmenuWithDishesSchema(**submenu.to_dict(), dishes=dishes))
             response_data.append(schemas.ResponseMenuWitSubmenusSchema(**menu.to_dict(), submenus=submenus))
         return response_data

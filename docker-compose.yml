@@ -4,9 +4,10 @@ volumes:
   postgres_data: { }
   redis_cache_data: { }
 
+
 services:
   fastapi:
-    container_name: fastapi_backend
+    container_name: "ylab_fastapi_backend"
     restart: always
     build:
       context: .
@@ -18,6 +19,8 @@ services:
         condition: service_healthy
       redis_cache:
         condition: service_healthy
+      rabbitmq3:
+        condition: service_healthy
     ports:
       - "8000:80"
     command: /start_reload.sh
@@ -27,7 +30,7 @@ services:
       - ylab_network
 
   postgres:
-    container_name: main_db
+    container_name: "ylab_main_db"
     restart: always
     image: postgres:15.1-alpine
     volumes:
@@ -47,7 +50,7 @@ services:
       - ylab_network
 
   redis_cache:
-    container_name: redis_cache
+    container_name: "ylab_redis_cache"
     image: redis:7.0
     restart: always
     ports:
@@ -70,6 +73,43 @@ services:
     networks:
       - ylab_network
 
+  celery:
+    container_name: "ylab_celery_worker"
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A workers.celery_worker worker -B --loglevel=info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    networks:
+      - ylab_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq3:
+        condition: service_healthy
+      redis_cache:
+        condition: service_healthy
+
+  rabbitmq3:
+    container_name: "ylab_rabbitmq3"
+    restart: always
+    image: rabbitmq:3-management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672
+    env_file:
+      - .env
+    networks:
+      - ylab_network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 20s
+      timeout: 20s
+      retries: 3
 
 networks:
   ylab_network:

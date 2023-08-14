@@ -34,3 +34,13 @@ class DishDBModel(BaseDBModel):
     submenu_id = Column(UUID(as_uuid=True), ForeignKey('submenus.id', ondelete='CASCADE'), nullable=False)
 
     submenu = relationship('SubmenuDBModel', foreign_keys=[submenu_id], back_populates='dishes')
+    discount = relationship('DiscountDBModel', back_populates='dish', uselist=False)
+
+
+class DiscountDBModel(BaseDBModel):
+    __tablename__ = 'dishes_discount'
+
+    value = Column(DECIMAL(5, 2))
+    dish_id = Column(UUID(as_uuid=True), ForeignKey('dishes.id', ondelete='CASCADE'), unique=True)
+
+    dish = relationship('DishDBModel', back_populates='discount')

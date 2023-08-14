@@ -15,8 +15,10 @@ jobs:
       - name: Up test environment
         run: |
           cp .env-dev .env
+          sed -i 's/Menu.xslx/none.xslx/g' .env
+          cat .env
           docker compose -f docker-compose.yml up -d --build
       - name: Test
-        run: docker exec fastapi_backend python3 -m pytest -v
+        run: docker exec ylab_fastapi_backend python3 -m pytest -v
       - name: Down test environment
         run: docker compose -f docker-compose.yml down

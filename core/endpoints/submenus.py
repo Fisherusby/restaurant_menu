@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import schemas, services
@@ -35,12 +35,12 @@ async def get_submenu_list(
     responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
 async def create_submenu(
-    menu_id: UUID, data: schemas.SubmenuSchema, db: AsyncSession = Depends(get_session)
+    bgtask: BackgroundTasks, menu_id: UUID, data: schemas.SubmenuSchema, db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseSubmenuSchema:
     """Create submenu for menu."""
 
     submenu: schemas.ResponseSubmenuSchema = await services.submenus_service.create_submenu(
-        db=db, menu_id=menu_id, data=data
+        db=db, menu_id=menu_id, data=data, bgtask=bgtask
     )
     return submenu
 
@@ -71,7 +71,11 @@ async def detail_submenu(
     responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
 async def update_submenu(
-    menu_id: UUID, submenu_id: UUID, data: schemas.UpdateSubmenuSchema, db: AsyncSession = Depends(get_session)
+    bgtask: BackgroundTasks,
+    menu_id: UUID,
+    submenu_id: UUID,
+    data: schemas.UpdateSubmenuSchema,
+    db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseSubmenuSchema:
     """Update submenu's properties:
 
@@ -79,7 +83,7 @@ async def update_submenu(
     """
 
     submenu: schemas.ResponseSubmenuSchema = await services.submenus_service.update_submenu(
-        db=db, menu_id=menu_id, submenu_id=submenu_id, data=data
+        db=db, menu_id=menu_id, submenu_id=submenu_id, data=data, bgtask=bgtask
     )
     return submenu
 
@@ -90,7 +94,9 @@ async def update_submenu(
     name='delete_submenu',
     responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
-async def delete_submenu(menu_id: UUID, submenu_id: UUID, db: AsyncSession = Depends(get_session)) -> None:
+async def delete_submenu(
+        bgtask: BackgroundTasks, menu_id: UUID, submenu_id: UUID, db: AsyncSession = Depends(get_session)
+) -> None:
     """Delete submenu."""
 
-    await services.submenus_service.delete_submenu(db=db, menu_id=menu_id, submenu_id=submenu_id)
+    await services.submenus_service.delete_submenu(db=db, menu_id=menu_id, submenu_id=submenu_id, bgtask=bgtask)

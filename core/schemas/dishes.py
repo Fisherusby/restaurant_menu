@@ -53,8 +53,13 @@ class DishWithSubmenuIdSchema(DishSchema):
     submenu_id: UUID
 
 
+class ParsingFileDishSchema(DishWithSubmenuIdSchema, BaseIdSchema):
+    pass
+
+
 class ResponseDishSchema(DishWithSubmenuIdSchema, BaseIdSchema):
     """Schema model for dish's data with dish ID.
 
     Used for response dish`s data.
     """
+    pass

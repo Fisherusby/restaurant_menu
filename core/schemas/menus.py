@@ -30,6 +30,10 @@ class ResponseMenuSchema(MenuSchema, BaseIdSchema):
     pass
 
 
+class ParsingFileMenuSchema(MenuSchema, BaseIdSchema):
+    pass
+
+
 class ResponseMenuWithCountSchema(ResponseMenuSchema):
     """Schema model for menu's data with counts of submenu and dishes.
 

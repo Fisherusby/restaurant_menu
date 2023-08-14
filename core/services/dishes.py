@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from fastapi import HTTPException
+from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core import models, repositories, schemas, services
+from core import constants, models, repositories, schemas, services
 from core.services.base import BaseObjectService
 
 
@@ -25,11 +25,11 @@ class DishesService(BaseObjectService):
         if cache_dish_list is not None:
             return cache_dish_list
 
-        dish_list: list[models.DishDBModel] = await self.repository.get_mul_by_fields(
-            db=db, fields={'submenu_id': submenu_id}
+        dish_list: list[models.DishDBModel] = await self.repository.get_dish_list_by_submenu_id(
+            db=db, submenu_id=submenu_id
         )
         response_dish_list: list[schemas.ResponseDishSchema] = [
-            schemas.ResponseDishSchema(**obj.to_dict()) for obj in dish_list
+            self.to_schema_with_discount(dish) for dish in dish_list
         ]
         await services.redis_service.set(cache_list_key, response_dish_list)
 
@@ -48,16 +48,22 @@ class DishesService(BaseObjectService):
         dish: models.DishDBModel = await self.get_dish_by_id_or_404(
             db=db, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id
         )
-        response_dish: schemas.ResponseDishSchema = schemas.ResponseDishSchema(**dish.to_dict())
+        response_dish: schemas.ResponseDishSchema = self.to_schema_with_discount(dish)
         await services.redis_service.set(cache_key, response_dish)
         return response_dish
+
+    def to_schema_with_discount(self, dish: models.DishDBModel) -> schemas.ResponseDishSchema:
+        """Apply discount if it exists"""
+        if dish.discount is not None:
+            dish.price = round(dish.price * (1 - dish.discount.value / 100), 2)
+        return schemas.ResponseDishSchema(**dish.to_dict())
 
     async def get_dish_by_id_or_404(
         self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, dish_id: UUID
     ) -> models.DishDBModel:
         """Get dish data or rise http 404 by IDs of dish, menu and submenu."""
-        dish: models.DishDBModel | None = await self.repository.get_one_by_fields(
-            db=db, fields={'id': dish_id, 'submenu_id': submenu_id}
+        dish: models.DishDBModel | None = await self.repository.get_dish(
+            db=db, dish_id=dish_id, submenu_id=submenu_id
         )
 
         if dish is None:
@@ -66,7 +72,7 @@ class DishesService(BaseObjectService):
         return dish
 
     async def create_dish(
-        self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, data: schemas.DishSchema
+        self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, data: schemas.DishSchema, bgtask: BackgroundTasks
     ) -> schemas.ResponseDishSchema:
         """Create dish in menu's submenu."""
         await services.submenus_service.get_submenu_by_id_or_404(db=db, menu_id=menu_id, submenu_id=submenu_id)
@@ -74,12 +80,24 @@ class DishesService(BaseObjectService):
             **data.model_dump(), submenu_id=submenu_id
         )
         dish: models.DishDBModel = await self.repository.create(db=db, obj_in=obj_in)
-        await self.clear_cache(menu_id=menu_id, submenu_id=submenu_id)
+
+        bgtask.add_task(
+            self.clearing_cache_process,
+            operation=constants.CREATE,
+            menu_id=menu_id,
+            submenu_id=submenu_id,
+        )
 
         return schemas.ResponseDishSchema(**dish.to_dict())
 
     async def update_dish(
-        self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, dish_id: UUID, data: schemas.UpdateDishSchema
+        self,
+        db: AsyncSession,
+        menu_id: UUID,
+        submenu_id: UUID,
+        dish_id: UUID,
+        data: schemas.UpdateDishSchema,
+        bgtask: BackgroundTasks
     ) -> schemas.ResponseDishSchema:
         """Update dish data."""
         dish: models.DishDBModel = await self.get_dish_by_id_or_404(
@@ -87,31 +105,71 @@ class DishesService(BaseObjectService):
         )
         updated_dish: models.DishDBModel = await self.repository.update(db=db, db_obj=dish, obj_in=data)
 
-        await services.redis_service.del_by_pattens(
-            self.gen_key(menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id),
-            self.gen_key(menu_id=menu_id, submenu_id=submenu_id, many=True),
+        bgtask.add_task(
+            self.clearing_cache_process,
+            operation=constants.UPDATE,
+            menu_id=menu_id,
+            submenu_id=submenu_id,
+            dish_id=dish_id
         )
 
         return schemas.ResponseDishSchema(**updated_dish.to_dict())
 
-    async def delete_dish(self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, dish_id: UUID) -> None:
+    async def delete_dish(
+            self, db: AsyncSession, menu_id: UUID, submenu_id: UUID, dish_id: UUID, bgtask: BackgroundTasks
+    ) -> None:
         """Delete dish."""
+
         await self.get_dish_by_id_or_404(db=db, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
 
         await self.repository.delete_by_id(db=db, obj_id=dish_id)
-        await self.clear_cache(menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
 
-    async def clear_cache(self, menu_id: UUID, submenu_id: UUID, dish_id: UUID | None = None) -> None:
-        """Clearing cache when create or delete dish"""
-        patterns: list[str] = [
-            self.gen_key(menu_id=menu_id, submenu_id=submenu_id, many=True),
-            services.submenus_service.gen_key(menu_id=menu_id, submenu_id=submenu_id),
-            services.menus_service.gen_key(menu_id=menu_id),
-        ]
-        if dish_id is not None:
-            patterns.append(self.gen_key(menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id))
+        bgtask.add_task(
+            self.clearing_cache_process,
+            operation=constants.DELETE,
+            menu_id=menu_id,
+            submenu_id=submenu_id,
+            dish_id=dish_id
+        )
 
+    async def clearing_cache_process(
+            self, operation: str, menu_id: UUID, submenu_id: UUID, dish_id: UUID | None = None
+    ) -> None:
+        """Clear cache after create, update, delete."""
+        patterns: list[str] = await self.clearing_cache_patterns(
+            operation=operation, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id
+        )
         await services.redis_service.del_by_pattens(*patterns)
+
+    async def clearing_cache_patterns(
+            self, operation: str, menu_id: UUID, submenu_id: UUID, dish_id: UUID | None
+    ) -> list[str]:
+        """Generate patterns for key by operation type (create, update, delete)"""
+        if operation == constants.CREATE:
+            return [
+                self.gen_key(menu_id=menu_id, submenu_id=submenu_id, many=True),
+                services.submenus_service.gen_key(menu_id=menu_id, submenu_id=submenu_id),
+                services.menus_service.gen_key(menu_id=menu_id),
+            ]
+
+        if dish_id is None:
+            return []
+
+        if operation == constants.UPDATE:
+            return [
+                self.gen_key(menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id),
+                self.gen_key(menu_id=menu_id, submenu_id=submenu_id, many=True),
+            ]
+
+        if operation == constants.DELETE:
+            return [
+                self.gen_key(menu_id=menu_id, submenu_id=submenu_id, many=True),
+                services.submenus_service.gen_key(menu_id=menu_id, submenu_id=submenu_id),
+                services.menus_service.gen_key(menu_id=menu_id),
+                self.gen_key(menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
+            ]
+
+        return []
 
 
 dishes_service = DishesService(repositories.dishes)

@@ -3,12 +3,14 @@ from core.schemas.dishes import (
     DishWithSubmenuIdSchema,
     ResponseDishSchema,
     UpdateDishSchema,
+    ParsingFileDishSchema,
 )
 from core.schemas.menus import (
     MenuSchema,
     ResponseMenuSchema,
     ResponseMenuWithCountSchema,
     UpdateMenuSchema,
+    ParsingFileMenuSchema,
 )
 from core.schemas.submenus import (
     ResponseSubmenuSchema,
@@ -16,11 +18,13 @@ from core.schemas.submenus import (
     SubmenuSchema,
     SubmenuWithMenuIdSchema,
     UpdateSubmenuSchema,
+    ParsingFileSubmenuSchema,
 )
 
 from core.schemas.all_in_one import (
     ResponseMenuWitSubmenusSchema,
     ResponseSubmenuWithDishesSchema,
+    CeleryTaskRunnerRequest,
 )
 
 from core.schemas.base import NotFoundSchema

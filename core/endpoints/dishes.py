@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import schemas, services
@@ -35,12 +35,16 @@ async def get_dish_list(
     responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
 async def create_dish(
-    menu_id: UUID, submenu_id: UUID, data: schemas.DishSchema, db: AsyncSession = Depends(get_session)
+    bgtask: BackgroundTasks,
+    menu_id: UUID,
+    submenu_id: UUID,
+    data: schemas.DishSchema,
+    db: AsyncSession = Depends(get_session)
 ) -> schemas.ResponseDishSchema:
     """Add dish for submenu."""
 
     dish: schemas.ResponseDishSchema = await services.dishes_service.create_dish(
-        db=db, menu_id=menu_id, submenu_id=submenu_id, data=data
+        db=db, menu_id=menu_id, submenu_id=submenu_id, data=data, bgtask=bgtask
     )
     return dish
 
@@ -71,6 +75,7 @@ async def detail_dish(
     responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
 async def update_dish(
+    bgtask: BackgroundTasks,
     menu_id: UUID,
     submenu_id: UUID,
     dish_id: UUID,
@@ -83,7 +88,7 @@ async def update_dish(
     """
 
     dish: schemas.ResponseDishSchema = await services.dishes_service.update_dish(
-        db=db, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id, data=data
+        db=db, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id, data=data, bgtask=bgtask
     )
     return dish
 
@@ -94,7 +99,11 @@ async def update_dish(
     name='delete_dish',
     responses={404: {'model': schemas.NotFoundSchema, 'description': 'Not Found Error'}},
 )
-async def delete_dish(menu_id: UUID, submenu_id: UUID, dish_id: UUID, db: AsyncSession = Depends(get_session)) -> None:
+async def delete_dish(
+        bgtask: BackgroundTasks, menu_id: UUID, submenu_id: UUID, dish_id: UUID, db: AsyncSession = Depends(get_session)
+) -> None:
     """Delete dish."""
 
-    await services.dishes_service.delete_dish(db=db, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id)
+    await services.dishes_service.delete_dish(
+        db=db, menu_id=menu_id, submenu_id=submenu_id, dish_id=dish_id, bgtask=bgtask
+    )

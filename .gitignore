@@ -168,3 +168,4 @@ cython_debug/
 # test report
 report.xml
 poetry.lock
+.~lock.*
