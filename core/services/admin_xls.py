@@ -407,10 +407,10 @@ class XLSAdminService(Generic[ParsingSchemaType, ModelType]):
 
             db_obj: models.DiscountDBModel = self.__DB_discount.pop(dish_id)
             if db_obj.value != value:
-                await repositories.discount.update(db=db, db_obj=db_obj, obj_in={'value': value})
                 self.logger.info(
                     'Updated discount from %s fo %s percent for dish[%s]', db_obj.value, value, dish_id
                 )
+                await repositories.discount.update(db=db, db_obj=db_obj, obj_in={'value': value})
 
         for db_obj in self.__DB_discount.values():
             await repositories.discount.delete_by_id(db=db, obj_id=db_obj.id)
